@@ -28,10 +28,10 @@ class AbstractCommand:
         return response
 
     def help(self):
-        help_response = "`" + name
+        help_response = "`" + self.name
         for item in type(self).args:
             help_response += " <" + item[0] + ">"
-        help_response += "`" + desc + "\n"
+        help_response += "`" + self.desc + "\n"
         for item in type(self).args:
             help_response += "*" + item[0] + "*: " + item[3] + "\n"
         return help_response
@@ -44,5 +44,3 @@ def split_string_except_quotes(input_string):
     tokens = re.findall(pattern, input_string)
 
     return tokens
-        
-    

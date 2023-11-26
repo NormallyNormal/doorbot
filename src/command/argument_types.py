@@ -3,7 +3,7 @@ import time
 
 class AbstractArgumentType:
     def __init__(self, string):
-        self.value = null
+        self.value = None
 
     def __str__(self):
         return "empty"
