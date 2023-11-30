@@ -1,0 +1,19 @@
+# Start/Stop MySQL Server and Actions VM Manually
+
+name: start-cloud-resources
+
+on:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job
+  send:
+    # The type of runner that the job will run on
+    runs-on: [ self-hosted ]
+
+    steps:
+    - name: Send curl command to start/stop via Webhook
+      run: curl -X "${{ secrets.WEBHOOK_START_STOP_URL }}"
+    - name: Sent message
+      run: echo "curl command sent to start cloud resources"
