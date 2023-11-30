@@ -1,5 +1,3 @@
-USE doorbot;
-
 CREATE TABLE usertype (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
     category VARCHAR(255) NOT NULL,
@@ -10,7 +8,7 @@ CREATE TABLE usertype (
 
 CREATE TABLE entryphoto (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
-    fileName VARCHAR(255) NOT NULL,
+    fileName VARCHAR(255) UNIQUE NOT NULL,
 	`timestamp` datetime NOT NULL,
 	PRIMARY KEY(id)
 );
@@ -18,15 +16,15 @@ CREATE TABLE entryphoto (
 CREATE TABLE doorinfo (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
     `status` VARCHAR(255) NOT NULL,
-	ipAddress VARCHAR(255) NOT NULL,
-	dns VARCHAR(255) NOT NULL,
+	ipAddress VARCHAR(255) UNIQUE NOT NULL,
+	dns VARCHAR(255) UNIQUE NOT NULL,
 	`port` VARCHAR(255) NOT NULL,
 	PRIMARY KEY(id)
 );
 
 CREATE TABLE door (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
-    displayName VARCHAR(255) NOT NULL,
+    displayName VARCHAR(255) UNIQUE NOT NULL,
 	location VARCHAR(255) NOT NULL,
 	PRIMARY KEY(id),
 	doorInfo_id_door INT UNIQUE NOT NULL,
@@ -36,9 +34,9 @@ CREATE TABLE door (
 
 CREATE TABLE `user` (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
-    discordUUID VARCHAR(255) NOT NULL,
-	hashedPassword VARCHAR(255) NOT NULL,
-    salt VARCHAR(255) NOT NULL,
+    discordUUID VARCHAR(255) UNIQUE NOT NULL,
+	hashedPassword VARCHAR(255) UNIQUE NOT NULL,
+    salt VARCHAR(255) UNIQUE NOT NULL,
     developer BIT NOT NULL,
 	PRIMARY KEY(id),
 	door_id_user INT UNIQUE,
@@ -121,7 +119,7 @@ CREATE TABLE scheduledEvent (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
 	timeStart datetime NOT NULL,
     timeEnd datetime NOT NULL,
-	`name` VARCHAR(255) NOT NULL,
+	`name` VARCHAR(255) UNIQUE NOT NULL,
 	PRIMARY KEY(id),
     
     door_id_scheduledEvent INT UNIQUE NOT NULL,
