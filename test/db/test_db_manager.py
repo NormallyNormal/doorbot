@@ -20,7 +20,6 @@ sock.close()
         
 try:
      manager = DbManager()
-     connection = manager.getConnection()
 except:
      sys.exit()
 
