@@ -1,9 +1,10 @@
-from dotenv import dotenv_values
-import mysql.connector
-import sys
-import os
-from datetime import datetime
 import hashlib
+import sys
+from datetime import datetime
+
+import mysql.connector
+from dotenv import dotenv_values
+
 
 class DbManager:
   def __init__(self):
@@ -29,8 +30,16 @@ class DbManager:
       return doorResult[0]
     raise ValueError("Door Does Not Exist")
 
-  def getUserByName(self, name):
+  def getUserByUUID(self, name):
     get_user_query = ("SELECT id FROM user AS u WHERE u.discordUUID=%s")
+    self.cursor.execute(get_user_query, (name,))
+    userResult = self.cursor.fetchone()
+    if (userResult != None):
+      return userResult[0]
+    raise ValueError("User Does Not Exist")
+  
+  def getUserByName(self, name):
+    get_user_query = ("SELECT id FROM user AS u WHERE u.username=%s")
     self.cursor.execute(get_user_query, (name,))
     userResult = self.cursor.fetchone()
     if (userResult != None):
@@ -70,12 +79,14 @@ class DbManager:
     userId = self.getUserByName(userName)
     openTypeId = self.getOpenTypeByName(openType)
 
-    score = -1
     msg = ""
-    self.cursor.callproc('open_door', (doorId, userId, score, msg))
-
-    success = False
-    self.cursor.callproc('create_open_log', (userId, doorId, entryPhotoFileName, openTypeId, success))
+    self.cursor.callproc('open_door', (doorId, userId, msg))
+    if (msg == "success"):
+      success = False
+      self.cursor.callproc('create_open_log', (userId, doorId, entryPhotoFileName, openTypeId, success))
+      # success will be True if log was created
+    else:
+      raise PermissionError(msg) # cannot access door
     
   def getDoors(self, userName):
     userId = self.getUserByName(userName)
@@ -121,10 +132,26 @@ class DbManager:
     set_loggedin_query = ("UPDATE user SET user.loggedIn = 1 WHERE user.id=%s")
     self.cursor.execute(set_loggedin_query, (userId,))
     return True
-    
+
   def getMyEvents(self, userName):
     userId = self.getUserByName(userName)
-    get_myevents_query = ("SELECT scheduledEvent.name FROM userinstance JOIN userToEvent ON userinstance.user_id_userinstance=userToEvent.userInstance_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE userinstance.user_id_userinstance=%s")
+    get_myevents_query = ("SELECT scheduledEvent.name FROM user JOIN userToEvent ON user.id=userToEvent.user_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE user.id=%s")
     self.cursor.execute(get_myevents_query, (userId,))
     results = self.cursor.fetchall()
     return results
+  
+  def getEventByName(self, name):
+    get_event_query = ("SELECT id FROM scheduledEvent WHERE name=%s")
+    self.cursor.execute(get_event_query, (name,))
+    eventResult = self.cursor.fetchone()
+    if (eventResult != None):
+      return eventResult[0]
+    raise ValueError("Event Does Not Exist")
+  
+  def addUserToEvent(self, invitedUser, eventName): 
+    userId = self.getUserByName(invitedUser)
+    eventId = self.getEventByName(eventName)
+    add_to_event_q = ("INSERT INTO userToEvent(user_id_userToEvent, event_id_userToEvent) VALUES (%s, %s)")
+    self.cursor.execute(add_to_event_q, (userId, eventId))
+    if (self.cursor.rowcount < 1):
+      raise ValueError("Could not create event")

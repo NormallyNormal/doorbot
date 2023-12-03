@@ -1,4 +1,4 @@
-use doorbot;
+-- use doorbot;
 
 CREATE TABLE IF NOT EXISTS usertype (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS door (
 
 CREATE TABLE IF NOT EXISTS `user` (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
-  discordUUID VARCHAR(255) UNIQUE NOT NULL,
+  discordUUID int UNIQUE NOT NULL,
+	username VARCHAR(255) NOT NULL,
 	hashedPassword VARCHAR(255) UNIQUE NOT NULL,
   salt VARCHAR(255) UNIQUE NOT NULL,
   developer boolean NOT NULL,
@@ -133,15 +134,15 @@ CREATE TABLE IF NOT EXISTS scheduledEvent (
 );
 
 CREATE TABLE IF NOT EXISTS userToEvent (
-	userInstance_id_userToEvent INT NOT NULL,
-	KEY fk_userInstanceid_userToEvent (userInstance_id_userToEvent),
-    CONSTRAINT fk_userInstanceid_userToEvent FOREIGN KEY (userInstance_id_userToEvent) REFERENCES userinstance (id) ON DELETE NO ACTION ON UPDATE CASCADE,
+	user_id_userToEvent INT NOT NULL,
+	KEY fk_user_id_userToEvent (user_id_userToEvent),
+    CONSTRAINT fk_user_id_userToEvent FOREIGN KEY (user_id_userToEvent) REFERENCES user (id) ON DELETE NO ACTION ON UPDATE CASCADE,
 	
   event_id_userToEvent INT NOT NULL,
 	KEY fk_eventid_userToEvent (event_id_userToEvent),
     CONSTRAINT fk_eventid_userToEvent FOREIGN KEY (event_id_userToEvent) REFERENCES scheduledEvent (id) ON DELETE NO ACTION ON UPDATE CASCADE,
     
-	PRIMARY KEY(userInstance_id_userToEvent, event_id_userToEvent)
+	PRIMARY KEY(user_id_userToEvent, event_id_userToEvent)
 );
 
 -- DROP TRIGGER IF EXISTS add_penalty;
@@ -151,14 +152,14 @@ FOR EACH ROW
 	UPDATE userinstance
 	SET score = score - NEW.penalty
 	WHERE id = NEW.userInstance_id_penaltylog;
-
+   
+-- DROP TRIGGER IF EXISTS increment_score_open_log
 CREATE TRIGGER increment_score_open_log
 AFTER INSERT ON openlog
 FOR EACH ROW
 	UPDATE userinstance
 	SET score = score + 1
 	WHERE id = NEW.userInstance_id_openlog;
-
 
 -- DROP PROCEDURE IF EXISTS create_open_log;
 -- DROP PROCEDURE IF EXISTS open_door;
@@ -186,23 +187,44 @@ BEGIN
 END;
 //
 
-CREATE PROCEDURE open_door(IN door_id INT, IN user_id VARCHAR(255), OUT score INT, OUT msg VARCHAR(255))
+CREATE PROCEDURE open_door(IN door_id INT, IN user_id VARCHAR(255), OUT msg VARCHAR(255))
 BEGIN
 	DECLARE ui_id INT;
-	DECLARE start_time datetime;
-	DECLARE end_time datetime; 
+	DECLARE start_time time;
+	DECLARE end_time time; 
+    DECLARE start_date datetime;
+    DECLARE end_date datetime;
+	DECLARE event_id INT;
 	-- Get the user instance ID for this door
 	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id;
+	SELECT ute.event_id_userToEvent INTO event_id FROM userToEvent AS ute JOIN scheduledEvent AS se ON se.id = ute.event_id_userToEvent WHERE se.door_id_scheduledEvent = door_id AND ute.user_id_userToEvent = user_id;
+	-- check for membership
 	IF ui_id IS NOT NULL THEN
 		-- Get times the user can enter the door
 		SELECT ut.startTime, ut.endTime INTO start_time, end_time FROM usertype AS ut JOIN userinstance AS ui ON ui.userType_id_userinstance = ut.id WHERE ui.id = ui_id;
 		IF start_time < CURRENT_TIME() AND end_time > CURRENT_TIME() THEN
-			SELECT ui.score INTO score FROM userinstance AS ui WHERE ui.id = ui_id;
+			SET msg = "success";
+		ELSEIF event_id IS NOT NULL THEN
+			-- check if event is happening
+			SELECT se.timeStart, se.timeEnd INTO start_date, end_date FROM scheduledEvent AS se WHERE se.id = event_id;
+			IF start_date < NOW() AND end_date > NOW() THEN
+				SET msg = "success";
+			ELSE
+				SET msg = "No permission to access that door right now";
+			END IF;
+		ELSE
+            SET msg = "No permission to access that door right now";
+		END IF;
+	ELSEIF event_id IS NOT NULL THEN
+		-- check if event is happening
+		SELECT se.timeStart, se.timeEnd INTO start_date, end_date FROM scheduledEvent AS se WHERE se.id = event_id;
+		IF start_date < NOW() AND end_date > NOW() THEN
+			SET msg = "success";
 		ELSE
 			SET msg = "No permission to access that door right now";
 		END IF;
-	ELSE 
-		SET msg = "No permission for that door";
+	ELSE
+		SET msg = "No permission to access that door";
 	END IF;
 END;
 //
