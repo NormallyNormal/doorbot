@@ -7,4 +7,4 @@ sys.path.append( script_dir )
 import command.command_registry as command_registry
 
 string = input("Enter command: ")
-print(command_registry.execute(string))
+print(command_registry.execute(string, 0))

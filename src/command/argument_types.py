@@ -24,10 +24,10 @@ class FloatArgumentType(AbstractArgumentType):
 
 class StringArgumentType(AbstractArgumentType):
     def __init__(self, string):
-        self.value = string
+        self.value = str(string)
 
     def __str__(self):
-        self.value
+        return self.value
 
 class TimeArgumentType(AbstractArgumentType):
     def __init__(self, string):
