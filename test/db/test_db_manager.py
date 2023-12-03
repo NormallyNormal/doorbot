@@ -122,13 +122,13 @@ class TestDbManager:
         result = results[0]        
         entryPhotoId = result[0]
         assert result[1] == "images/abc.png"
-        assert result[2] == datetime.now().replace(microsecond=0, second=0)
+        assert result[2] == datetime.now().replace(microsecond=0)
 
         get_openlogs_query = ("SELECT timestamp, door_id_openlog, photo_id_openlog, userInstance_id_openlog, openType_id_openlog FROM openlog")
         manager.getCursor().execute(get_openlogs_query)
         results = manager.getCursor().fetchall()
         assert len(results) == 1
-        assert results[0] == (datetime.now().replace(microsecond=0, second=0), manager.getDoorByName("Room 403 Door"), entryPhotoId, manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByName("ccrollin")), manager.getOpenTypeByName("bot"))
+        assert results[0] == (datetime.now().replace(microsecond=0), manager.getDoorByName("Room 403 Door"), entryPhotoId, manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByName("ccrollin")), manager.getOpenTypeByName("bot"))
 
     def test_getDoors(self):
         try:
