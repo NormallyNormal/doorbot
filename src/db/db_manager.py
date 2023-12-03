@@ -1,7 +1,9 @@
 from dotenv import dotenv_values
 import mysql.connector
 import sys
+import os
 from datetime import datetime
+import hashlib
 
 class DbManager:
   def __init__(self):
@@ -41,7 +43,7 @@ class DbManager:
     openTypeResult = self.cursor.fetchone()
     if (openTypeResult != None):
       return openTypeResult[0]
-    raise ValueError("Open Types Does Not Exist")
+    raise ValueError("Open Type Does Not Exist")
 
   def getUserInstance(self, doorId, userId):
     get_userinstance_query = ("SELECT id FROM userinstance AS ui WHERE ui.door_id_userinstance=%s AND ui.user_id_userinstance=%s")
@@ -82,6 +84,44 @@ class DbManager:
     results = self.cursor.fetchall()
     return results
 
+  def checkPassword(self, userId, password):
+    get_hashed_query = ("SELECT hashedPassword FROM user WHERE user.id=%s")
+    self.cursor.execute(get_hashed_query, (userId,))
+    databaseHash = self.cursor.fetchone()[0]
+
+    get_salt_query = ("SELECT salt FROM user WHERE user.id=%s")
+    self.cursor.execute(get_salt_query, (userId,))
+    databaseSalt = self.cursor.fetchone()[0]
+    
+    m = hashlib.sha256()
+    m.update((databaseSalt + password).encode())
+    clientHash = m.hexdigest()
+
+    if (clientHash != databaseHash):
+      raise ValueError("Invalid Password")
+
+  def checkLoggedIn(self, userId):
+    check_loggedin_query = ("SELECT loggedIn FROM user WHERE user.id=%s")
+    self.cursor.execute(check_loggedin_query, (userId,))
+    result = self.cursor.fetchone()
+    result = result[0]
+
+    if (result == 1):
+      return True
+    else:
+      return False
+
+  def login(self, username, password):
+    userId = self.getUserByName(username)
+    if (self.checkLoggedIn(userId) == True):
+      raise ValueError("You are already logged in.")
+    
+    self.checkPassword(userId, password)
+
+    set_loggedin_query = ("UPDATE user SET user.loggedIn = 1 WHERE user.id=%s")
+    self.cursor.execute(set_loggedin_query, (userId,))
+    return True
+    
   def getMyEvents(self, userName):
     userId = self.getUserByName(userName)
     get_myevents_query = ("SELECT scheduledEvent.name FROM userinstance JOIN userToEvent ON userinstance.user_id_userinstance=userToEvent.userInstance_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE userinstance.user_id_userinstance=%s")
