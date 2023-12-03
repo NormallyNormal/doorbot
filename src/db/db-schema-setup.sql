@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS userToEvent (
 	PRIMARY KEY(user_id_userToEvent, event_id_userToEvent)
 );
 
--- DROP TRIGGER IF EXISTS add_penalty;
+--DROP TRIGGER IF EXISTS add_penalty;
 CREATE TRIGGER add_penalty
 AFTER INSERT ON penaltylog
 FOR EACH ROW
@@ -167,8 +167,8 @@ BEGIN
 END;
 //
 
--- DROP PROCEDURE IF EXISTS create_open_log;
--- DROP PROCEDURE IF EXISTS open_door;
+--DROP PROCEDURE IF EXISTS create_open_log;
+--DROP PROCEDURE IF EXISTS open_door;
 
 CREATE PROCEDURE create_open_log(IN user_id VARCHAR(255), IN door_id INT, IN photo_filename VARCHAR(255), IN open_type_id INT, OUT success boolean)
 BEGIN 
@@ -218,7 +218,7 @@ BEGIN
 				SET msg = "No permission to access that door right now";
 			END IF;
 		ELSE
-      SET msg = "No permission to access that door right now";
+       SET msg = "No permission to access that door right now";
 		END IF;
 	ELSEIF event_id IS NOT NULL THEN
 		-- check if event is happening
