@@ -154,17 +154,23 @@ FOR EACH ROW
 	WHERE id = NEW.userInstance_id_penaltylog;
    
 -- DROP TRIGGER IF EXISTS increment_score_open_log
+-- Do not increment score if was opened via an event open. Event open is open type 1
+DELIMITER //
 CREATE TRIGGER increment_score_open_log
 AFTER INSERT ON openlog
 FOR EACH ROW
-	UPDATE userinstance
-	SET score = score + 1
-	WHERE id = NEW.userInstance_id_openlog;
+BEGIN
+	IF NEW.openType_id_openlog <> 1
+		UPDATE userinstance
+		SET score = score + 1
+		WHERE id = NEW.userInstance_id_openlog;
+	END IF;
+END;
+//
 
 -- DROP PROCEDURE IF EXISTS create_open_log;
 -- DROP PROCEDURE IF EXISTS open_door;
 
-DELIMITER //
 CREATE PROCEDURE create_open_log(IN user_id VARCHAR(255), IN door_id INT, IN photo_filename VARCHAR(255), IN open_type_id INT, OUT success boolean)
 BEGIN 
 	DECLARE ui_id INT;
@@ -177,8 +183,8 @@ BEGIN
 		SET last_inserted = LAST_INSERT_ID();
 		IF last_inserted <> 0 THEN
 			INSERT INTO openlog(`timestamp`, door_id_openlog, photo_id_openlog, userInstance_id_openlog, openType_id_openlog) VALUES (t, door_id, last_inserted, ui_id, open_type_id);
-            SET success = 1;
-        ELSE 
+      SET success = 1;
+    ELSE 
 			SET success = 0;
 		END IF;
 	ELSE
@@ -192,8 +198,8 @@ BEGIN
 	DECLARE ui_id INT;
 	DECLARE start_time time;
 	DECLARE end_time time; 
-    DECLARE start_date datetime;
-    DECLARE end_date datetime;
+  DECLARE start_date datetime;
+  DECLARE end_date datetime;
 	DECLARE event_id INT;
 	-- Get the user instance ID for this door
 	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id;
@@ -208,18 +214,18 @@ BEGIN
 			-- check if event is happening
 			SELECT se.timeStart, se.timeEnd INTO start_date, end_date FROM scheduledEvent AS se WHERE se.id = event_id;
 			IF start_date < NOW() AND end_date > NOW() THEN
-				SET msg = "success";
+				SET msg = "success: event";
 			ELSE
 				SET msg = "No permission to access that door right now";
 			END IF;
 		ELSE
-            SET msg = "No permission to access that door right now";
+      SET msg = "No permission to access that door right now";
 		END IF;
 	ELSEIF event_id IS NOT NULL THEN
 		-- check if event is happening
 		SELECT se.timeStart, se.timeEnd INTO start_date, end_date FROM scheduledEvent AS se WHERE se.id = event_id;
 		IF start_date < NOW() AND end_date > NOW() THEN
-			SET msg = "success";
+			SET msg = "success: event";
 		ELSE
 			SET msg = "No permission to access that door right now";
 		END IF;
