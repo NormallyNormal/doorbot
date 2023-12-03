@@ -220,3 +220,12 @@ class TestDbManager:
 
         assert manager.login("ccrollin", "password") == True
         assert manager.checkLoggedIn(manager.getUserByName("ccrollin")) == True
+
+
+    def test_CreateUser(self):
+        try:
+            manager.addUser("ccrollin, password")
+            assert False
+        except ValueError:
+            assert True
+        assert len(manager.addUser("newUser, newPass")) == 1 
