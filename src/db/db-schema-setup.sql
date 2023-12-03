@@ -1,3 +1,5 @@
+-- use doorbot;
+
 CREATE TABLE IF NOT EXISTS usertype (
 	id INT UNIQUE NOT NULL AUTO_INCREMENT,
   category VARCHAR(255) NOT NULL,
@@ -139,6 +141,7 @@ CREATE TABLE IF NOT EXISTS userToEvent (
 	PRIMARY KEY(userInstance_id_userToEvent, event_id_userToEvent)
 );
 
+-- DROP TRIGGER IF EXISTS add_penalty;
 CREATE TRIGGER add_penalty
 AFTER INSERT ON penaltylog
 FOR EACH ROW
@@ -146,13 +149,16 @@ FOR EACH ROW
 	SET score = score - NEW.penalty
 	WHERE id = NEW.userInstance_id_penaltylog;
 
+-- DROP PROCEDURE IF EXISTS create_open_log;
+-- DROP PROCEDURE IF EXISTS open_door;
+
 DELIMITER //
-CREATE PROCEDURE create_open_log(IN discord_uuid VARCHAR(255), IN door_id INT, IN photo_filename VARCHAR(255), IN open_type_id INT, OUT success boolean)
+CREATE PROCEDURE create_open_log(IN user_id VARCHAR(255), IN door_id INT, IN photo_filename VARCHAR(255), IN open_type_id INT, OUT success boolean)
 BEGIN 
 	DECLARE ui_id INT;
 	DECLARE t time; -- timestamp
 	DECLARE last_inserted INT;
-	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.discordUUID = discord_uuid;
+	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id;
 	IF ui_id IS NOT NULL THEN 
 		SET t = CURRENT_TIME();
 		INSERT INTO entryphoto(fileName, `timestamp`) VALUES (photo_filename, t);
@@ -169,13 +175,13 @@ BEGIN
 END;
 //
 
-CREATE PROCEDURE open_door(IN door_id INT, IN discord_uuid VARCHAR(255), OUT score INT, OUT msg VARCHAR(255))
+CREATE PROCEDURE open_door(IN door_id INT, IN user_id VARCHAR(255), OUT score INT, OUT msg VARCHAR(255))
 BEGIN
 	DECLARE ui_id INT;
 	DECLARE start_time datetime;
 	DECLARE end_time datetime; 
 	-- Get the user instance ID for this door
-	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id  AND u.discordUUID = discord_uuid;
+	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id;
 	IF ui_id IS NOT NULL THEN
 		-- Get times the user can enter the door
 		SELECT ut.startTime, ut.endTime INTO start_time, end_time FROM usertype AS ut JOIN userinstance AS ui ON ui.userType_id_userinstance = ut.id WHERE ui.id = ui_id;
