@@ -66,17 +66,15 @@ class DbManager:
   def doorOpened(self, doorName, userName, entryPhotoFileName, openType):
     doorId = self.getDoorByName(doorName)
     userId = self.getUserByName(userName)
-    userInstanceId = self.getUserInstance(doorId, userId)
     openTypeId = self.getOpenTypeByName(openType)
 
-    add_entryphoto_query = ("INSERT INTO entryphoto (fileName, timestamp) VALUES (%s, %s)")
-    self.cursor.execute(add_entryphoto_query, (entryPhotoFileName, datetime.now().replace(microsecond=0, second=0)))
-    
-    entryPhotoId = self.cursor.lastrowid
-    
-    add_openlog_query = ("INSERT INTO openlog (timestamp, door_id_openlog, photo_id_openlog, userInstance_id_openlog, openType_id_openlog) VALUES (%s, %s, %s, %s, %s)")
-    self.cursor.execute(add_openlog_query, (datetime.now().replace(microsecond=0, second=0), doorId, entryPhotoId, userInstanceId, openTypeId))
+    score = -1
+    msg = ""
+    self.cursor.callproc('open_door', (doorId, userId, score, msg))
 
+    success = False
+    self.cursor.callproc('create_open_log', (userId, doorId, entryPhotoFileName, openTypeId, success))
+    
   def getDoors(self, userName):
     userId = self.getUserByName(userName)
     get_doors_query = ("SELECT door.displayName FROM userinstance JOIN door ON userinstance.door_id_userinstance=door.id WHERE userinstance.user_id_userinstance=%s")
