@@ -81,9 +81,10 @@ class DbManager:
 
     msg = ""
     self.cursor.callproc('open_door', (doorId, userId, msg))
-    if (msg == "success"):
-      success = False
-      self.cursor.callproc('create_open_log', (userId, doorId, entryPhotoFileName, openTypeId, success))
+    if ("success" in msg):
+      if ("event" not in msg):
+        success = False
+        self.cursor.callproc('create_open_log', (userId, doorId, entryPhotoFileName, openTypeId, success))
       # success will be True if log was created
     else:
       raise PermissionError(msg) # cannot access door
