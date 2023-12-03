@@ -30,22 +30,14 @@ class DbManager:
       return doorResult[0]
     raise ValueError("Door Does Not Exist")
 
-  def getUserByUUID(self, name):
+  def getUserByUUID(self, uuid):
     get_user_query = ("SELECT id FROM user AS u WHERE u.discordUUID=%s")
-    self.cursor.execute(get_user_query, (name,))
+    self.cursor.execute(get_user_query, (uuid,))
     userResult = self.cursor.fetchone()
     if (userResult != None):
       return userResult[0]
     raise ValueError("User Does Not Exist")
   
-  def getUserByName(self, name):
-    get_user_query = ("SELECT id FROM user AS u WHERE u.username=%s")
-    self.cursor.execute(get_user_query, (name,))
-    userResult = self.cursor.fetchone()
-    if (userResult != None):
-      return userResult[0]
-    raise ValueError("User Does Not Exist")
-
   def getOpenTypeByName(self, name):
     get_opentype_query = ("SELECT id FROM opentype AS ot WHERE ot.name=%s")
     self.cursor.execute(get_opentype_query, (name,))
@@ -74,9 +66,9 @@ class DbManager:
     add_event_query = ("INSERT INTO scheduledEvent (timeStart, timeEnd, name, door_id_scheduledEvent) VALUES (%s, %s, %s, %s)")
     self.cursor.execute(add_event_query, (timeStart, timeEnd, name, doorId))
 
-  def doorOpened(self, doorName, userName, entryPhotoFileName, openType):
+  def doorOpened(self, doorName, userUUID, entryPhotoFileName, openType):
     doorId = self.getDoorByName(doorName)
-    userId = self.getUserByName(userName)
+    userId = self.getUserByUUID(userUUID)
     openTypeId = self.getOpenTypeByName(openType)
 
     msg = ""
@@ -89,8 +81,8 @@ class DbManager:
     else:
       raise PermissionError(msg) # cannot access door
     
-  def getDoors(self, userName):
-    userId = self.getUserByName(userName)
+  def getDoors(self, uuid):
+    userId = self.getUserByUUID(uuid)
     get_doors_query = ("SELECT door.displayName FROM userinstance JOIN door ON userinstance.door_id_userinstance=door.id WHERE userinstance.user_id_userinstance=%s")
     self.cursor.execute(get_doors_query, (userId,))
     results = self.cursor.fetchall()
@@ -123,8 +115,8 @@ class DbManager:
     else:
       return False
 
-  def login(self, username, password):
-    userId = self.getUserByName(username)
+  def login(self, userUUID, password):
+    userId = self.getUserByUUID(userUUID)
     if (self.checkLoggedIn(userId) == True):
       raise ValueError("You are already logged in.")
     
@@ -134,8 +126,8 @@ class DbManager:
     self.cursor.execute(set_loggedin_query, (userId,))
     return True
 
-  def getMyEvents(self, userName):
-    userId = self.getUserByName(userName)
+  def getMyEvents(self, uuid):
+    userId = self.getUserByUUID(uuid)
     get_myevents_query = ("SELECT scheduledEvent.name FROM user JOIN userToEvent ON user.id=userToEvent.user_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE user.id=%s")
     self.cursor.execute(get_myevents_query, (userId,))
     results = self.cursor.fetchall()
@@ -149,8 +141,8 @@ class DbManager:
       return eventResult[0]
     raise ValueError("Event Does Not Exist")
   
-  def addUserToEvent(self, invitedUser, eventName): 
-    userId = self.getUserByName(invitedUser)
+  def addUserToEvent(self, invitedUserUUID, eventName): 
+    userId = self.getUserByUUID(invitedUserUUID)
     eventId = self.getEventByName(eventName)
     add_to_event_q = ("INSERT INTO userToEvent(user_id_userToEvent, event_id_userToEvent) VALUES (%s, %s)")
     self.cursor.execute(add_to_event_q, (userId, eventId))
