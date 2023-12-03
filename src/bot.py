@@ -17,7 +17,7 @@ class MyClient(discord.Client):
             return
         print(f'Message from {message.author}: {message.content}')
         try:
-            response = command_registry.execute(message.content)
+            response = command_registry.execute(message.content, message.author.id)
         except SyntaxError as syntaxError:
             response = str(syntaxError)
         finally:
