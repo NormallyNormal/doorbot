@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 	hashedPassword VARCHAR(255) UNIQUE NOT NULL,
   salt VARCHAR(255) UNIQUE NOT NULL,
   developer boolean NOT NULL,
+  loggedIn boolean NOT NULL,
 	PRIMARY KEY(id),
 	door_id_user INT,
 	KEY fk_defaultDoor (door_id_user),
