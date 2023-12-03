@@ -152,6 +152,14 @@ FOR EACH ROW
 	SET score = score - NEW.penalty
 	WHERE id = NEW.userInstance_id_penaltylog;
 
+CREATE TRIGGER increment_score_open_log
+AFTER INSERT ON openlog
+FOR EACH ROW
+	UPDATE userinstance
+	SET score = score + 1
+	WHERE id = NEW.userInstance_id_openlog;
+
+
 -- DROP PROCEDURE IF EXISTS create_open_log;
 -- DROP PROCEDURE IF EXISTS open_door;
 
