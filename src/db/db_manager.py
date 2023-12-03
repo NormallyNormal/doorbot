@@ -125,6 +125,15 @@ class DbManager:
     set_loggedin_query = ("UPDATE user SET user.loggedIn = 1 WHERE user.id=%s")
     self.cursor.execute(set_loggedin_query, (userId,))
     return True
+  
+  def logout(self, userUUID):
+    userId = self.getUserByUUID(userUUID)
+    if (self.checkLoggedIn(userId) == False):
+      raise ValueError("You are not logged in.")
+    
+    set_loggedout_query = ("UPDATE user SET user.loggedIn = 0 WHERE user.id=%s")
+    self.cursor.execute(set_loggedout_query, (userId,))
+    return True
 
   def getMyEvents(self, uuid):
     userId = self.getUserByUUID(uuid)
@@ -146,5 +155,9 @@ class DbManager:
     eventId = self.getEventByName(eventName)
     add_to_event_q = ("INSERT INTO userToEvent(user_id_userToEvent, event_id_userToEvent) VALUES (%s, %s)")
     self.cursor.execute(add_to_event_q, (userId, eventId))
-    if (self.cursor.rowcount < 1):
-      raise ValueError("Could not create event")
+
+  def removeUserFromEvent(self, invitedUserUUID, eventName):
+    userId = self.getUserByUUID(invitedUserUUID)
+    eventId = self.getEventByName(eventName)
+    remove_to_event_q = ("DELETE FROM userToEvent WHERE user_id_userToEvent=%s AND event_id_userToEvent=%s")
+    self.cursor.execute(remove_to_event_q, (userId, eventId))
