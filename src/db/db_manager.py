@@ -6,6 +6,7 @@ from datetime import datetime
 import mysql.connector
 from dotenv import dotenv_values
 
+
 class DbManager:
   def __init__(self):
     try:

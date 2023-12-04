@@ -1,9 +1,10 @@
 import re
 
-import command.argument_types as argument_types
 import command.abstract_command as abstract_command
-import doorserver.door_server as door_server
+import command.argument_types as argument_types
 import db.db_manager as db_manager
+import doorserver.door_server as door_server
+
 
 class OpenCommand(abstract_command.AbstractCommand):
     name = "open"

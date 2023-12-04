@@ -1,8 +1,9 @@
 import asyncio
-from websockets.server import serve
-from threading import Thread
 import hashlib
 from hmac import compare_digest
+from threading import Thread
+
+from websockets.server import serve
 
 websockets_list = dict()
 
@@ -54,8 +55,6 @@ def start_door_server():
     SocketServerThread().start()
 
 start_door_server()
-while True:
-    continue
 
 #HOW TO USE:
 #run once:
