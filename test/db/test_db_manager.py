@@ -218,10 +218,90 @@ class TestDbManager:
             assert True
             assert str(e) == "Invalid Password"
 
+        assert manager.checkLoggedIn(manager.getUserByUUID("1234")) == False
         assert manager.login("1234", "password") == True
         assert manager.checkLoggedIn(manager.getUserByUUID("1234")) == True
+        manager.getConnection().rollback()
 
-    def test_createUser(self):
+    def test_logout(self):
+        try:
+            manager.logout("4567")
+            assert False
+        except ValueError as e:
+            assert str(e) == "User Does Not Exist"
+            assert True
+        
+        try:
+            manager.logout("1234")
+            assert False
+        except ValueError as e:
+            assert str(e) == "You are not logged in."
+            assert True
+
+        assert manager.checkLoggedIn(manager.getUserByUUID("12345")) == True
+        assert manager.logout("12345") == True
+        assert manager.checkLoggedIn(manager.getUserByUUID("12345")) == False
+        manager.getConnection().rollback()
+
+    def test_getEventByName(self):
+        try:
+            manager.getEventByName("Random Party")
+            assert False
+        except ValueError as e:
+            assert str(e) == "Event Does Not Exist"
+            assert True
+        
+        result = manager.getEventByName("Party B")
+        assert result == 1
+
+    def test_addUserToEvent(self):
+        try:
+            manager.addUserToEvent("4567", "Party A")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User Does Not Exist"
+
+        try:
+            manager.addUserToEvent("1234", "Random Party")
+            assert False
+        except ValueError as e:
+            assert str(e) == "Event Does Not Exist"
+            assert True
+
+        assert manager.getMyEvents("12345") == []
+        manager.addUserToEvent("12345", "Party B") 
+        assert manager.getMyEvents("12345") == [("Party B",)]
+        manager.getConnection().rollback()
+ 
+    def test_removeUserFromEvent(self):
+        try:
+            manager.removeUserFromEvent("4567", "Party B")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User Does Not Exist"
+
+        try:
+            manager.removeUserFromEvent("1234", "Random Party")
+            assert False
+        except ValueError as e:
+            assert str(e) == "Event Does Not Exist"
+            assert True
+
+        try:
+            manager.removeUserFromEvent("12345", "Party B")
+            assert False
+        except ValueError as e:
+            assert str(e) == "User is not invited, so they cannot be uninvited from the event."
+            assert True
+
+        assert manager.getMyEvents("1234") == [("Party B",)]
+        manager.removeUserFromEvent("1234", "Party B") 
+        assert manager.getMyEvents("1234") == []
+        manager.getConnection().rollback()
+
+    def test_addUser(self):
         try:
             manager.addUser("1234", "password")
             assert False

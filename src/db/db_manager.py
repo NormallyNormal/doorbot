@@ -162,6 +162,10 @@ class DbManager:
   def removeUserFromEvent(self, invitedUserUUID, eventName):
     userId = self.getUserByUUID(invitedUserUUID)
     eventId = self.getEventByName(eventName)
+
+    if ((eventName, ) not in self.getMyEvents(invitedUserUUID)):
+      raise ValueError("User is not invited, so they cannot be uninvited from the event.")
+    
     remove_to_event_q = ("DELETE FROM userToEvent WHERE user_id_userToEvent=%s AND event_id_userToEvent=%s")
     self.cursor.execute(remove_to_event_q, (userId, eventId))
 
