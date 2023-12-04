@@ -7,9 +7,11 @@ sys.path.append( script_dir )
 import discord
 import command.command_registry as command_registry
 from dotenv import load_dotenv
+import doorserver.door_server as door_server
 
 class MyClient(discord.Client):
     async def on_ready(self):
+        door_server.start_door_server()
         print(f'Successful login as {self.user}')
 
     async def on_message(self, message):
