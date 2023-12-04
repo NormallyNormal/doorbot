@@ -1,3 +1,4 @@
+-- create database doorbot;
 -- use doorbot;
 
 CREATE TABLE IF NOT EXISTS usertype (
@@ -144,7 +145,7 @@ CREATE TABLE IF NOT EXISTS userToEvent (
 	PRIMARY KEY(user_id_userToEvent, event_id_userToEvent)
 );
 
---DROP TRIGGER IF EXISTS add_penalty;
+-- DROP TRIGGER IF EXISTS add_penalty;
 CREATE TRIGGER add_penalty
 AFTER INSERT ON penaltylog
 FOR EACH ROW
@@ -159,7 +160,7 @@ CREATE TRIGGER increment_score_open_log
 AFTER INSERT ON openlog
 FOR EACH ROW
 BEGIN
-	IF NEW.openType_id_openlog <> 1
+	IF NEW.openType_id_openlog <> 1 THEN
 		UPDATE userinstance
 		SET score = score + 1
 		WHERE id = NEW.userInstance_id_openlog;
@@ -167,8 +168,8 @@ BEGIN
 END;
 //
 
---DROP PROCEDURE IF EXISTS create_open_log;
---DROP PROCEDURE IF EXISTS open_door;
+-- DROP PROCEDURE IF EXISTS create_open_log;
+-- DROP PROCEDURE IF EXISTS open_door;
 
 CREATE PROCEDURE create_open_log(IN user_id VARCHAR(255), IN door_id INT, IN photo_filename VARCHAR(255), IN open_type_id INT, OUT success boolean)
 BEGIN 
