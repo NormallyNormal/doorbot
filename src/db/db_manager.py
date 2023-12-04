@@ -161,3 +161,17 @@ class DbManager:
     eventId = self.getEventByName(eventName)
     remove_to_event_q = ("DELETE FROM userToEvent WHERE user_id_userToEvent=%s AND event_id_userToEvent=%s")
     self.cursor.execute(remove_to_event_q, (userId, eventId))
+
+  def addUser(self, discordUUID, password): 
+    try: 
+      #if user exists already do nothing
+      self.getUserByName(userName)
+      return
+    except ValueError:
+      salt = os.urandom(16).hex()
+      hashedPassword = hashlib.sha256().update(salt + password).hexdigest()
+      addUserQuery = ("INSERT INTO `user` VALUES (%s, %s, %s, 0, 0, NULL)")
+      self.cursor.execute(addUserQuery, (discordUUID, hashedPassword, salt))
+      
+      #if this doesn't effect exactly one row it failed.
+      return len(self.cursor.fetchall()) == 1 
