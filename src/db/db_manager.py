@@ -88,9 +88,22 @@ class DbManager:
     
   def getDoors(self, uuid):
     userId = self.getUserByUUID(uuid)
-    get_doors_query = ("SELECT door.displayName FROM userinstance JOIN door ON userinstance.door_id_userinstance=door.id WHERE userinstance.user_id_userinstance=%s")
+    # all doors (not events)
+    get_doors_query = ("SELECT d.displayName, ut.category FROM userinstance AS ui JOIN door AS d ON ui.door_id_userinstance = d.id JOIN usertype AS ut ON ui.userType_id_userinstance = ut.id WHERE ui.user_id_userinstance=%s")
     self.cursor.execute(get_doors_query, (userId,))
     results = self.cursor.fetchall()
+    # add doors to doorlist (do not want duplicate entries for events and normal permissions)
+    doorlist = []
+    for r in results:
+      doorlist.append(r[0])
+    # event invites
+    get_doors_events_query = ("SELECT d.displayName FROM door AS d JOIN scheduledEvent AS se ON se.door_id_scheduledEvent = d.id JOIN userToEvent AS ute ON ute.event_id_userToEvent = se.id WHERE ute.user_id_userToEvent=%s")
+    self.cursor.execute(get_doors_events_query, (userId,))
+    results_e = self.cursor.fetchall()
+    # add new doors to results
+    for r in results_e:
+      if (r[0] not in doorlist):
+        results.append((r[0], 'event')) 
     return results
 
   def checkPassword(self, userId, password):

@@ -10,10 +10,6 @@ class LogoutCommand(abstract_command.AbstractCommand):
     desc = "Logs in to your door account with a password, allowing you to use door features."
     args = []
 
-    def __init__(self, string, discordID, executable=True):
-        self.parsed_args = ''
-        self.issuer_id = discordID
-
     def run(self):
         db = DbManager()
         try:

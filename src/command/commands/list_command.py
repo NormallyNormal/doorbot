@@ -10,19 +10,15 @@ class ListCommand(abstract_command.AbstractCommand):
     desc = "Lists door names you have any level of access to, along with locations. Includes doors you may use temporarily because of events."
     args = []
 
-    def __init__(self, string, discordID, executable=True):
-        self.parsed_args = ''
-        self.issuer_id = discordID
-
     def run(self):
         db = DbManager()
         try:
-            if db.checkLoggedIn(self.issuer_id):
+            if db.checkLoggedIn(db.getUserByUUID(self.issuer_id)):
                 doors = db.getDoors(self.issuer_id)
                 response = "Your Doors: \n\n"
                 if (doors):
                     for door in doors:
-                        response += f"- {door[0]}\n"
+                        response += f"- {door[0]} -- {door[1]}\n"
                 return response
             else:
                 raise SyntaxError('You are not logged in')
