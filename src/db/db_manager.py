@@ -167,7 +167,7 @@ class DbManager:
     try: 
       #if user exists already do nothing
       self.getUserByUUID(discordUUID)
-      return
+      return False
     except ValueError:
       salt = os.urandom(16).hex()
       hashedPassword = hashlib.sha256().update(salt + password).hexdigest()
