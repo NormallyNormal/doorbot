@@ -221,10 +221,25 @@ class TestDbManager:
         assert manager.login("1234", "password") == True
         assert manager.checkLoggedIn(manager.getUserByUUID("1234")) == True
 
+    def test_createUser(self):
+        try:
+            manager.addUser("1234", "password")
+            assert False
+        except LookupError as e:
+            assert True
+            assert str(e) == "User already exists in the system."
+ 
+        try:
+            manager.getUserByUUID("4567")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User Does Not Exist"
 
-    def test_CreateUser(self):
-        #try to create an existing user
-        assert ( not (manager.addUser("ccrollin", "password")))
+        manager.addUser("4567", "newPass")
 
-        #create a new user
-        assert (len(manager.addUser("newUser, newPass")) == 1) 
+        try:
+            manager.getUserByUUID("4567")
+            assert True
+        except ValueError as e:
+            assert False

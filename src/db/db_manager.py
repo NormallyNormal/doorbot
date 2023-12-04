@@ -6,7 +6,6 @@ from datetime import datetime
 import mysql.connector
 from dotenv import dotenv_values
 
-
 class DbManager:
   def __init__(self):
     try:
@@ -22,6 +21,9 @@ class DbManager:
     
   def getCursor(self):
     return self.cursor
+
+  def closeConnection(self):
+    self.connection.close()
 
   def getDoorByName(self, name):
     get_door_query = ("SELECT id FROM door AS d WHERE d.displayName=%s")
@@ -164,15 +166,14 @@ class DbManager:
     self.cursor.execute(remove_to_event_q, (userId, eventId))
 
   def addUser(self, discordUUID, password): 
-    try: 
-      #if user exists already do nothing
+    try:
       self.getUserByUUID(discordUUID)
-      return False
+      raise LookupError("User already exists in the system.")
     except ValueError:
       salt = os.urandom(16).hex()
-      hashedPassword = hashlib.sha256().update(salt + password).hexdigest()
-      addUserQuery = ("INSERT INTO `user` VALUES (%s, %s, %s, 0, 0, NULL)")
+      m = hashlib.sha256()
+      m.update((salt + password).encode())
+      hashedPassword = m.hexdigest()
+
+      addUserQuery = ("INSERT INTO user (discordUUID, hashedPassword, salt, developer, loggedIn, door_id_user) VALUES (%s, %s, %s, 0, 0, NULL)")
       self.cursor.execute(addUserQuery, (discordUUID, hashedPassword, salt))
-      
-      #if this doesn't effect exactly one row it failed.
-      return len(self.cursor.fetchall()) == 1 
