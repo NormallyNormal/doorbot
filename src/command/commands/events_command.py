@@ -9,7 +9,12 @@ class EventsCommand(abstract_command.AbstractCommand):
     args = [("door", argument_types.StringArgumentType, "The name of the door to view events for.")]
 
     def run(self):
-        #database access
-        response = "command ran with door: "
-        response += str(self.parsed_args["door"])
+        db_manger_instance = db_manager.DbManager()
+        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+            raise SyntaxError("You are not logged in.")
+        events_for_door = db_manger_instance.getEvents(str(self.parsed_args["door"])
+        response = "Events for "
+        response += str(self.parsed_args["door"]) + ":\n"
+        for event_for_door in events_for_door:
+            response += event_for_door[2] + " from " + str(event_for_door[0]) + str(event_for_door[1])
         return response
