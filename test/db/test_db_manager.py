@@ -1,13 +1,13 @@
-from dotenv import dotenv_values
-from src.db.db_manager import DbManager
+import socket
+import sys
+import time
+from datetime import datetime
+
 import mysql.connector
 import pytest
+from dotenv import dotenv_values
 
-import socket
-import time
-import sys
-
-from datetime import datetime
+from src.db.db_manager import DbManager
 
 config = dotenv_values("db.env")
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,15 +67,15 @@ class TestDbManager:
         assert result[0] == (datetime(2008, 11, 9, 15, 45, 21), datetime(2008, 11, 11, 13, 23, 44), 'Party B', manager.getDoorByName("Room 403 Door"))
         assert result[1] == (datetime(2022, 12, 28, 23, 55, 59), datetime(2023, 12, 28, 23, 55, 59), "Party A", manager.getDoorByName("Room 403 Door"))
     
-    def test_getUserByName(self):
+    def test_getUserByUUID(self):
         try:
-            result = manager.getUserByName("joe")
+            result = manager.getUserByUUID("joe")
             assert False
         except ValueError as e:
             assert str(e) == "User Does Not Exist"
             assert True
 
-        result = manager.getUserByName("ccrollin")
+        result = manager.getUserByUUID("1234")
         assert result == 1
     
     def test_getOpenTypeByName(self):
@@ -95,25 +95,25 @@ class TestDbManager:
 
     def test_getUserInstance(self):
         try:
-            result = manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByName("joe"))
+            result = manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByUUID("joe"))
             assert False
         except ValueError as e:
             assert str(e) == "User Does Not Exist"
             assert True
         
         try:
-            result = manager.getUserInstance(manager.getDoorByName("Random Door"), manager.getUserByName("ccrollin"))
+            result = manager.getUserInstance(manager.getDoorByName("Random Door"), manager.getUserByUUID("1234"))
             assert False
         except ValueError as e:
             assert str(e) == "Door Does Not Exist"
             assert True
 
-        result = manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByName("ccrollin"))
+        result = manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByUUID("1234"))
         assert result == 1
 
     def test_doorOpened(self):
         try:
-            manager.doorOpened("Random Door", "ccrollin", "images/abc.png", "bot")
+            manager.doorOpened("Random Door", "1234", "images/abc.png", "bot")
             assert False
         except ValueError as e:
             assert str(e) == "Door Does Not Exist"
@@ -127,13 +127,13 @@ class TestDbManager:
             assert True
 
         try:
-            manager.doorOpened("Room 403 Door", "ccrollin", "images/abc.png", "random category")
+            manager.doorOpened("Room 403 Door", "1234", "images/abc.png", "random category")
             assert False
         except ValueError as e:
             assert str(e) == "Open Type Does Not Exist"
             assert True
 
-        manager.doorOpened("Room 403 Door", "ccrollin", "images/abc.png", "bot")
+        manager.doorOpened("Room 403 Door", "1234", "images/abc.png", "bot")
 
         get_entryphoto_query = ("SELECT * FROM entryphoto")
         manager.getCursor().execute(get_entryphoto_query)
@@ -148,7 +148,7 @@ class TestDbManager:
         manager.getCursor().execute(get_openlogs_query)
         results = manager.getCursor().fetchall()
         assert len(results) == 1
-        assert results[0] == (datetime.now().replace(microsecond=0), manager.getDoorByName("Room 403 Door"), entryPhotoId, manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByName("ccrollin")), manager.getOpenTypeByName("bot"))
+        assert results[0] == (datetime.now().replace(microsecond=0), manager.getDoorByName("Room 403 Door"), entryPhotoId, manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByUUID("1234")), manager.getOpenTypeByName("bot"))
 
     def test_getDoors(self):
         try:
@@ -158,7 +158,7 @@ class TestDbManager:
             assert str(e) == "User Does Not Exist"
             assert True
 
-        results = manager.getDoors("ccrollin")
+        results = manager.getDoors("1234")
         assert len(results) == 1
         result = results[0]
         assert result[0] ==  "Room 403 Door"
@@ -171,31 +171,31 @@ class TestDbManager:
             assert str(e) == "User Does Not Exist"
             assert True
 
-        results = manager.getMyEvents("ccrollin")
+        results = manager.getMyEvents("1234")
         assert len(results) == 1
         result = results[0]
         assert result[0] == "Party B"
 
     def test_checkPassword(self):
         try:
-            manager.checkPassword(manager.getUserByName("ccrollin"), "wrongPassword")
+            manager.checkPassword(manager.getUserByUUID("1234"), "wrongPassword")
             assert False
         except ValueError as e:
             assert str(e) == "Invalid Password"
             assert True
 
         try:
-            manager.checkPassword(manager.getUserByName("ccrollin"), "password")
+            manager.checkPassword(manager.getUserByUUID("1234"), "password")
             assert True
         except:
             assert False
     
     def test_checkLoggedIn(self):
-        assert manager.checkLoggedIn(manager.getUserByName("ccrollin")) == False
-        assert manager.checkLoggedIn(manager.getUserByName("jtrobin6")) == True
+        assert manager.checkLoggedIn(manager.getUserByUUID("1234")) == False
+        assert manager.checkLoggedIn(manager.getUserByUUID("12345")) == True
 
     def test_login(self):
-        assert manager.checkLoggedIn(manager.getUserByName("ccrollin")) == False
+        assert manager.checkLoggedIn(manager.getUserByUUID("1234")) == False
 
         try:
             manager.login("nobody", "password")
@@ -205,26 +205,26 @@ class TestDbManager:
             assert True
 
         try:
-            manager.login("jtrobin6", "password")
+            manager.login("12345", "password")
             assert False
         except ValueError as e:
             assert str(e) == "You are already logged in."
             assert True
 
         try:
-            manager.login("ccrollin", "wrongPassword")
+            manager.login("1234", "wrongPassword")
             assert False
         except ValueError as e:
             assert True
             assert str(e) == "Invalid Password"
 
-        assert manager.login("ccrollin", "password") == True
-        assert manager.checkLoggedIn(manager.getUserByName("ccrollin")) == True
+        assert manager.login("1234", "password") == True
+        assert manager.checkLoggedIn(manager.getUserByUUID("1234")) == True
 
 
     def test_CreateUser(self):
         try:
-            manager.addUser("ccrollin, password")
+            manager.addUser("1234", "password")
             assert False
         except ValueError:
             assert True

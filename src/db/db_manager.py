@@ -1,4 +1,5 @@
 import hashlib
+import os
 import sys
 from datetime import datetime
 
@@ -72,7 +73,8 @@ class DbManager:
     openTypeId = self.getOpenTypeByName(openType)
 
     msg = ""
-    self.cursor.callproc('open_door', (doorId, userId, msg))
+    result_args = self.cursor.callproc('open_door', (doorId, userId, msg))
+    msg = result_args[2]
     if ("success" in msg):
       if ("event" not in msg):
         success = False
@@ -109,7 +111,6 @@ class DbManager:
     self.cursor.execute(check_loggedin_query, (userId,))
     result = self.cursor.fetchone()
     result = result[0]
-
     if (result == 1):
       return True
     else:
@@ -165,7 +166,7 @@ class DbManager:
   def addUser(self, discordUUID, password): 
     try: 
       #if user exists already do nothing
-      self.getUserByName(userName)
+      self.getUserByUUID(discordUUID)
       return
     except ValueError:
       salt = os.urandom(16).hex()
