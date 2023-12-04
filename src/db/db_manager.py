@@ -138,6 +138,31 @@ class DbManager:
     self.cursor.execute(set_loggedout_query, (userId,))
     return True
 
+  def userPermissionUpdate(self, userUUID, doorName, permissionLevel)
+    if not permissionLevel in ["none", "guest", "resident", "admin"]:
+      raise ValueError("Bad permission level.")
+    door_id = self.getDoorByName(doorName)
+    user_id = self.getUserByUUID(userUUID)
+    get_user_instance_query = ("SELECT id FROM userinstance WHERE user_id_userinstance=%s AND door_id_userinstance=%s")
+    self.cursor.execute(get_event_query, (user_id, door_id))
+    user_instance_id = self.cursor.fetchone()
+    get_permission_id_query = ("SELECT id FROM usertype WHERE catagory=%s")
+    self.cursor.execute(get_permission_id_query, (permissionLevel,))
+    permission_id = self.cursor.fetchone()[0]
+    if (user_instance_id != None):
+      if not permissionLevel == "none":
+        set_loggedout_query = ("UPDATE userinstance SET userType_id_userinstance = %s WHERE id=%s"
+        self.cursor.execute(set_loggedout_query, (permission_id, user_instance_id[0]))
+      else:
+        set_loggedout_query = ("DELETE FROM userinstance WHERE id=%s"
+        self.cursor.execute(set_loggedout_query, (user_instance_id[0]))
+    else:
+      if not permissionLevel == "none":
+        add_event_query = ("INSERT INTO userinstance (door_id_userinstance, user_id_userinstance, userType_id_userinstance) VALUES (%s, %s, %s)")
+        self.cursor.execute(add_event_query, (door_id, user_id, permission_id))
+      else:
+        raise ValueError("User already has no permission.")
+
   def getMyEvents(self, uuid):
     userId = self.getUserByUUID(uuid)
     get_myevents_query = ("SELECT scheduledEvent.name FROM user JOIN userToEvent ON user.id=userToEvent.user_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE user.id=%s")
