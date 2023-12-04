@@ -11,6 +11,8 @@ class UninviteCommand(abstract_command.AbstractCommand):
 
     def run(self):
         db_manger_instance = db_manager.DbManager()
+        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+            raise SyntaxError("You are not logged in.")
         try:
             permission_level = db_manger_instance.permissionLevelForEvent(self.issuer_id, self.parsed_args["event name"])
             if permission_level == 'admin' or permission_level == 'resident':
