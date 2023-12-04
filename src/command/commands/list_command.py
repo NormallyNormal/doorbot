@@ -16,17 +16,17 @@ class ListCommand(abstract_command.AbstractCommand):
 
     def run(self):
         db = DbManager()
-        user = ''
         try:
-            user = db.getUserByUUID(self.issuer_id)
-        except ValueError:
-            raise SyntaxError("User not found, create an account using: password *password*")
-        if db.checkLoggedIn(user):
-            doors = db.getDoors(self.issuer_id)
-            response = "Your Doors: \n\n"
-            if (doors):
-                for door in doors:
-                    response += f"- {door[0]}\n"
-        else:
-            response = f"Please Log in before using the {self.name} command"
-        return response
+            if db.checkLoggedIn(self.issuer_id):
+                doors = db.getDoors(self.issuer_id)
+                response = "Your Doors: \n\n"
+                if (doors):
+                    for door in doors:
+                        response += f"- {door[0]}\n"
+                return response
+            else:
+                raise SyntaxError('You are not logged in')
+        except ValueError as e:
+            raise SyntaxError(str(e))
+        finally:
+            db.closeConnection()

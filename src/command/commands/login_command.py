@@ -2,6 +2,7 @@ import re
 
 import command.abstract_command as abstract_command
 import command.argument_types as argument_types
+from db.db_manager import DbManager
 
 
 class LoginCommand(abstract_command.AbstractCommand):
@@ -25,6 +26,13 @@ class LoginCommand(abstract_command.AbstractCommand):
                     raise SyntaxError("Argument " + type(self).args[i][0] + " is not valid.")
 
     def run(self):
-        response = "command ran with password: "
-        response += str(self.parsed_args["password"])
-        return response
+        db = DbManager()
+        try:
+            db.login(self.issuer_id, str(self.parsed_args["password"]))
+            db.getConnection().commit()
+            return "You are now logged in"
+        except ValueError as e:
+            raise SyntaxError(str(e))
+        finally:
+            db.closeConnection()
+
