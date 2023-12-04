@@ -152,23 +152,23 @@ class DbManager:
     self.cursor.execute(set_loggedout_query, (userId,))
     return True
 
-  def userPermissionUpdate(self, userUUID, doorName, permissionLevel)
+  def userPermissionUpdate(self, userUUID, doorName, permissionLevel):
     if not permissionLevel in ["none", "guest", "resident", "admin"]:
       raise ValueError("Bad permission level.")
     door_id = self.getDoorByName(doorName)
     user_id = self.getUserByUUID(userUUID)
     get_user_instance_query = ("SELECT id FROM userinstance WHERE user_id_userinstance=%s AND door_id_userinstance=%s")
-    self.cursor.execute(get_event_query, (user_id, door_id))
+    self.cursor.execute(get_user_instance_query, (user_id, door_id))
     user_instance_id = self.cursor.fetchone()
     get_permission_id_query = ("SELECT id FROM usertype WHERE catagory=%s")
     self.cursor.execute(get_permission_id_query, (permissionLevel,))
     permission_id = self.cursor.fetchone()[0]
     if (user_instance_id != None):
       if not permissionLevel == "none":
-        set_loggedout_query = ("UPDATE userinstance SET userType_id_userinstance = %s WHERE id=%s"
+        set_loggedout_query = ("UPDATE userinstance SET userType_id_userinstance = %s WHERE id=%s")
         self.cursor.execute(set_loggedout_query, (permission_id, user_instance_id[0]))
       else:
-        set_loggedout_query = ("DELETE FROM userinstance WHERE id=%s"
+        set_loggedout_query = ("DELETE FROM userinstance WHERE id=%s")
         self.cursor.execute(set_loggedout_query, (user_instance_id[0]))
     else:
       if not permissionLevel == "none":
@@ -210,12 +210,12 @@ class DbManager:
 
   def permissionLevelForEvent(self, userUUID, eventName):
     try:
-      userId = self.getUserByUUID(invitedUserUUID)
+      userId = self.getUserByUUID(userUUID)
       get_event_door_query = ("SELECT door_id_scheduledEvent FROM scheduledEvent WHERE name=%s")
       self.cursor.execute(get_event_door_query, (eventName,))
       eventDoorResult = self.cursor.fetchone()[0]
       get_userinstance_permission_query = ("SELECT userType_id_userinstance FROM userinstance AS ui WHERE ui.door_id_userinstance=%s AND ui.user_id_userinstance=%s")
-      self.cursor.execute(get_userinstance_query, (eventDoorResult, userId))
+      self.cursor.execute(get_userinstance_permission_query, (eventDoorResult, userId))
       userInstancePermissionResult = self.cursor.fetchone()[0]
       get_permission_name_query = ("SELECT category FROM usertype WHERE id=%s")
       self.cursor.execute(get_permission_name_query, (userInstancePermissionResult,))
