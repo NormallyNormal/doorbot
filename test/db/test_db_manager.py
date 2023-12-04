@@ -223,9 +223,8 @@ class TestDbManager:
 
 
     def test_CreateUser(self):
-        try:
-            manager.addUser("1234", "password")
-            assert False
-        except ValueError:
-            assert True
-        assert len(manager.addUser("newUser, newPass")) == 1 
+        #try to create an existing user
+        assert ( not (manager.addUser("ccrollin", "password")))
+
+        #create a new user
+        assert (len(manager.addUser("newUser, newPass")) == 1) 
