@@ -2,6 +2,8 @@ import re
 
 import command.argument_types as argument_types
 import command.abstract_command as abstract_command
+import doorserver.door_server as door_server
+import db.db_manager as db_manager
 
 class OpenCommand(abstract_command.AbstractCommand):
     name = "open"
@@ -24,8 +26,16 @@ class OpenCommand(abstract_command.AbstractCommand):
                     raise SyntaxError("Argument " + type(self).args[i][0] + " is not valid.")
 
     def run(self):
-        #database access
-        response = "command ran with door: "
+        db_manger_instance = db_manager.DbManager()
+        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+            raise SyntaxError("You are not logged in.")
+        try:
+            db_manger_instance.doorOpened(str(self.parsed_args["door"]), self.issuer_id, "none", "manual")
+        except PermissionError:
+            db_manager.closeConnection()
+            raise SyntaxError("That door does not exist, or you do not have permission to use it.")
+        response = "Opened a door: "
         response += str(self.parsed_args["door"])
-        #door arg my not be present, query db for user default door in that case
+        door_server.open(str(self.parsed_args["door"]))
+        db_manager.closeConnection()
         return response

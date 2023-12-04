@@ -10,7 +10,24 @@ class UninviteCommand(abstract_command.AbstractCommand):
             ("event name", argument_types.StringArgumentType, "Name of the event to remove the user from.")]
 
     def run(self):
-        #database access
-        response = "command ran with user: "
-        response += str(self.parsed_args["user"])
+        db_manger_instance = db_manager.DbManager()
+        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+            raise SyntaxError("You are not logged in.")
+        try:
+            permission_level = db_manger_instance.permissionLevelForEvent(self.issuer_id, self.parsed_args["event name"])
+            if permission_level == 'admin' or permission_level == 'resident':
+                try:
+                    db_manger_instance.removeUserFromEvent(str(self.parsed_args["user"]), str(self.parsed_args["event name"])) 
+                    response = "Removed @<"
+                    response += str(self.parsed_args["user"]) + "> from event "
+                    response += str(self.parsed_args["event name"]) + "."
+                except:
+                    response = "Failed to remove @<"
+                    response += str(self.parsed_args["user"]) + "> from event "
+                    response += str(self.parsed_args["event name"]) + "."
+            else:
+                raise SyntaxError("That event does not exist, or you do not have permission")
+        except:
+            db_manager.closeConnection()
+            raise SyntaxError("That event does not exist, or you do not have permission")
         return response

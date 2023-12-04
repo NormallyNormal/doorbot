@@ -6,5 +6,6 @@ sys.path.append( script_dir )
 
 import command.command_registry as command_registry
 
+id = sys.argv[1]
 string = input("Enter command: ")
-print(command_registry.execute(string, 0))
+print(command_registry.execute(string, id))

@@ -169,6 +169,21 @@ class DbManager:
     remove_to_event_q = ("DELETE FROM userToEvent WHERE user_id_userToEvent=%s AND event_id_userToEvent=%s")
     self.cursor.execute(remove_to_event_q, (userId, eventId))
 
+  def permissionLevelForEvent(self, userUUID, eventName):
+    try:
+      userId = self.getUserByUUID(invitedUserUUID)
+      get_event_door_query = ("SELECT door_id_scheduledEvent FROM scheduledEvent WHERE name=%s")
+      self.cursor.execute(get_event_door_query, (eventName,))
+      eventDoorResult = self.cursor.fetchone()[0]
+      get_userinstance_permission_query = ("SELECT userType_id_userinstance FROM userinstance AS ui WHERE ui.door_id_userinstance=%s AND ui.user_id_userinstance=%s")
+      self.cursor.execute(get_userinstance_query, (eventDoorResult, userId))
+      userInstancePermissionResult = self.cursor.fetchone()[0]
+      get_permission_name_query = ("SELECT category FROM usertype WHERE id=%s")
+      self.cursor.execute(get_permission_name_query, (userInstancePermissionResult,))
+      return self.cursor.fetchone()[0]
+    except:
+      raise ValueError("User has no permissions set")
+    
   def addUser(self, discordUUID, password): 
     try:
       self.getUserByUUID(discordUUID)
