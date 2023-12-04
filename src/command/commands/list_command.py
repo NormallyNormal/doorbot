@@ -20,8 +20,7 @@ class ListCommand(abstract_command.AbstractCommand):
         try:
             user = db.getUserByUUID(self.issuer_id)
         except ValueError:
-            response = "User not found, create an account using: password *password*"
-            return response
+            raise SyntaxError("User not found, create an account using: password *password*")
         if db.checkLoggedIn(user):
             doors = db.getDoors(self.issuer_id)
             response = "Your Doors: \n\n"
