@@ -15,13 +15,20 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
+        message_content_array = message.content.split()
+        idx = 0
+        for arg in message_content_array:
+            print(arg[:2])
+            if arg[:2] == '<@':
+                message_content_array[idx] = arg[2:len(arg)-1]
+            idx += 1
+        message_content = ' '.join(message_content_array)
         print(f'Message from {message.author}: {message.content}')
         try:
-            response = command_registry.execute(message.content, message.author.id)
+            response = command_registry.execute(message_content, message.author.id)
         except SyntaxError as syntaxError:
             response = str(syntaxError)
         finally:
-            
             await message.channel.send(response)
         
 load_dotenv('bot.env')
