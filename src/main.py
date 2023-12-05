@@ -12,4 +12,4 @@ while (True):
   try:
     print(command_registry.execute(string, id))
   except SyntaxError as e:
-    print(f"There was a syntax error with message {str(e)}")
+    print(f"There was a syntax error with message: {str(e)}")

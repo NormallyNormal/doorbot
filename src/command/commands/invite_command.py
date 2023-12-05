@@ -1,7 +1,9 @@
 import re
 
-import command.argument_types as argument_types
 import command.abstract_command as abstract_command
+import command.argument_types as argument_types
+from db.db_manager import DbManager
+
 
 class InviteCommand(abstract_command.AbstractCommand):
     name = "invite"
@@ -10,7 +12,7 @@ class InviteCommand(abstract_command.AbstractCommand):
             ("event name", argument_types.StringArgumentType, "Name of the event to invite the user to.")]
 
     def run(self):
-        db_manger_instance = db_manager.DbManager()
+        db_manger_instance = DbManager()
         if not db_manger_instance.checkLoggedIn(self.issuer_id):
             raise SyntaxError("You are not logged in.")
         try:
@@ -18,6 +20,7 @@ class InviteCommand(abstract_command.AbstractCommand):
             if permission_level == 'admin' or permission_level == 'resident':
                 try:
                     db_manger_instance.addUserToEvent(str(self.parsed_args["user"]), str(self.parsed_args["event name"])) 
+                    db_manger_instance.getConnection().commit()
                     response = "Added @<"
                     response += str(self.parsed_args["user"]) + "> to event "
                     response += str(self.parsed_args["event name"]) + "."
@@ -28,7 +31,8 @@ class InviteCommand(abstract_command.AbstractCommand):
             else:
                 raise SyntaxError("That event does not exist, or you do not have permission")
         except:
-            db_manager.closeConnection()
             raise SyntaxError("That event does not exist, or you do not have permission")
+        finally:
+            db_manger_instance.closeConnection()
         return response
 

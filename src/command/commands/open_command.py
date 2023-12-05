@@ -32,11 +32,12 @@ class OpenCommand(abstract_command.AbstractCommand):
             raise SyntaxError("You are not logged in.")
         try:
             db_manger_instance.doorOpened(str(self.parsed_args["door"]), self.issuer_id, "none", "manual")
+            db_manger_instance.getConnection().commit()
         except PermissionError:
-            db_manager.closeConnection()
+            db_manger_instance.closeConnection()
             raise SyntaxError("That door does not exist, or you do not have permission to use it.")
         response = "Opened a door: "
         response += str(self.parsed_args["door"])
         door_server.open(str(self.parsed_args["door"]))
-        db_manager.closeConnection()
+        db_manger_instance.closeConnection()
         return response

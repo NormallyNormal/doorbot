@@ -1,5 +1,6 @@
-from datetime import datetime
 import time
+from datetime import datetime
+
 
 class AbstractArgumentType:
     def __init__(self, string):
@@ -38,6 +39,9 @@ class TimeArgumentType(AbstractArgumentType):
 
     def __str__(self):
         return  time.strftime("%I:%M%p %Z", self.value)
+    
+    def sql(self):
+        return self.value
 
 class DateArgumentType(AbstractArgumentType):
     def __init__(self, string):
@@ -46,15 +50,21 @@ class DateArgumentType(AbstractArgumentType):
     def __str__(self):
         return datetime.strftime("%d/%m/%y", self.value)
     
+    def sql(self):
+        return self.value
+    
 class DateTimeArgumentType(AbstractArgumentType):
     def __init__(self, string):
         try:
-            print(string)
+            #print(string)
             self.value = datetime.strptime(string, "%d/%m/%y %I:%M %p %Z%z")
         except:
-            print(string)
+            #print(string)
             self.value = datetime.strptime(string + " UTC-0400", "%d/%m/%y %I:%M %p %Z%z")
 
     def __str__(self):
         return datetime.strftime("%d/%m/%y %I:%M%p %Z", self.value)
+    
+    def sql(self):
+        return self.value
 

@@ -1,7 +1,9 @@
 import re
-import db.db_manager as dbManager
-import command.argument_types as argument_types
+
 import command.abstract_command as abstract_command
+import command.argument_types as argument_types
+import db.db_manager as dbManager
+
 
 class ScheduleCommand(abstract_command.AbstractCommand):
     name = "schedule"
@@ -15,12 +17,18 @@ class ScheduleCommand(abstract_command.AbstractCommand):
     def run(self):
         #database access
         manager = dbManager.DbManager()
-        timeStart = self.parsed_args["time start"]
-        timeEnd = self.parsed_args["time end"]
-        name = self.parsed_args["event name"]
-        doorName = self.parsed_args["door"]
+        timeStart = self.parsed_args["time start"].sql()
+        timeEnd = self.parsed_args["time end"].sql()
+        name = str(self.parsed_args["event name"])
+        doorName = str(self.parsed_args["door"])
 
-        manager.addEvent(timeStart, timeEnd, name, doorName)
-        response = "command ran with name : "
-        response += str(self.parsed_args["event name"])
-        return response
+        try:
+            if manager.checkLoggedIn(manager.getUserByUUID(self.issuer_id)):
+                manager.addEvent(timeStart, timeEnd, name, doorName)
+            else:
+                raise SyntaxError('You are not logged in')
+        except ValueError as e:
+            raise SyntaxError(str(e))
+        finally:
+            manager.closeConnection()
+    

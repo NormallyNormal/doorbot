@@ -17,6 +17,7 @@ class PermitCommand(abstract_command.AbstractCommand):
             raise SyntaxError("You are not logged in.")
         try:
             db_manger_instance.userPermissionUpdate(str(self.parsed_args["user"]), str(self.parsed_args["door"]), str(self.parsed_args["role"]))
+            db_manger_instance.getConnection().commit()
         except:
             raise SyntaxError("Could not grant permission.")
         finally:
