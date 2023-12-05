@@ -177,6 +177,33 @@ class DbManager:
       else:
         raise ValueError("User already has no permission.")
 
+  def permissionLevelForDoor(self, userUUID, doorName):
+    try:
+      userId = self.getUserByUUID(userUUID)
+      doorId = self.getDoorByName(doorName)
+
+      get_door_in_userinstance_query = ("SELECT userinstance.id FROM userinstance WHERE userinstance.user_id_userinstance=%s AND userinstance.door_id_userinstance=%s")
+      self.cursor.execute(get_door_in_userinstance_query, (userId, doorId))
+      result = self.cursor.fetchone()[0]
+    except:
+      raise ValueError("User has no permissions to complete actions on this door.")
+
+  def setDefault(self, userUUID, doorName):    
+    userId = self.getUserByUUID(userUUID)
+    doorId = self.getDoorByName(doorName)
+
+    set_default_query = ("UPDATE user SET user.door_id_user = %s WHERE user.id=%s")
+    self.cursor.execute(set_default_query, (doorId, userId))
+
+  def getDefault(self, uuid):
+    userId = self.getUserByUUID(uuid)
+    select_door_name = ("SELECT door.displayName FROM user JOIN door ON user.door_id_user=door.id WHERE user.id=%s")
+    self.cursor.execute(select_door_name, (userId,))
+    result = self.cursor.fetchone()
+    if (result != None):
+      return result[0]
+    raise ValueError("No default door has been set")
+
   def getMyEvents(self, uuid):
     userId = self.getUserByUUID(uuid)
     get_myevents_query = ("SELECT scheduledEvent.name FROM user JOIN userToEvent ON user.id=userToEvent.user_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE user.id=%s")

@@ -323,3 +323,71 @@ class TestDbManager:
             assert True
         except ValueError as e:
             assert False
+
+    def test_permissionLevelForEvent(self):
+        try:
+            manager.permissionLevelForEvent("1234", "Random Event")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User has no permissions set"
+        
+        try:
+            manager.permissionLevelForEvent("12345", "Party B")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User has no permissions set"
+            
+        assert manager.permissionLevelForEvent("1234", "Party B") == "resident"
+
+    def test_permissionLevelForDoor(self):
+        try:
+            manager.permissionLevelForDoor("12345", "Room 403 Door")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User has no permissions to complete actions on this door."
+        
+        try:
+            manager.permissionLevelForDoor("1234", "Room 403 Door")
+            assert True
+        except ValueError as e:
+            assert False
+
+    def test_setDefault(self):
+        try:
+            manager.setDefault("98012", "Room 403 Door")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User Does Not Exist"
+
+        try:
+            manager.setDefault("1234", "Random Door")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "Door Does Not Exist"
+
+        assert manager.getDefault("12345") == "Room 403 Door"
+        manager.setDefault("12345", "Room 300 Door")
+        assert manager.getDefault("12345") == "Room 300 Door"
+        
+    def test_getDefault(self):
+        try:
+            manager.getDefault("98012")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "User Does Not Exist"
+
+        try:
+            manager.getDefault("10101")
+            assert False
+        except ValueError as e:
+            assert True
+            assert str(e) == "No default door has been set"
+
+        assert manager.getDefault("1234") == "Room 403 Door"
+        assert manager.getDefault("12345") == "Room 300 Door"
