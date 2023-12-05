@@ -12,13 +12,13 @@ class EventsCommand(abstract_command.AbstractCommand):
 
     def run(self):
         db_manger_instance = DbManager()
-        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+        if not db_manger_instance.checkLoggedIn(db_manger_instance.getUserByUUID(self.issuer_id)):
             db_manger_instance.closeConnection()
             raise SyntaxError("You are not logged in.")
         events_for_door = db_manger_instance.getEvents(str(self.parsed_args["door"]))
         response = "Events for "
-        response += str(self.parsed_args["door"]) + ":\n"
+        response += str(self.parsed_args["door"]) + ":\n\n"
         for event_for_door in events_for_door:
-            response += event_for_door[2] + " from " + str(event_for_door[0]) + str(event_for_door[1])
+            response += f"- {event_for_door[2]} from {str(event_for_door[0])} to {str(event_for_door[1])}"
         db_manger_instance.closeConnection()
         return response

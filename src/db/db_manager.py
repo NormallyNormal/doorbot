@@ -160,7 +160,7 @@ class DbManager:
     get_user_instance_query = ("SELECT id FROM userinstance WHERE user_id_userinstance=%s AND door_id_userinstance=%s")
     self.cursor.execute(get_user_instance_query, (user_id, door_id))
     user_instance_id = self.cursor.fetchone()
-    get_permission_id_query = ("SELECT id FROM usertype WHERE catagory=%s")
+    get_permission_id_query = ("SELECT id FROM usertype WHERE category=%s")
     self.cursor.execute(get_permission_id_query, (permissionLevel,))
     permission_id = self.cursor.fetchone()[0]
     if (user_instance_id != None):
@@ -172,7 +172,7 @@ class DbManager:
         self.cursor.execute(set_loggedout_query, (user_instance_id[0]))
     else:
       if not permissionLevel == "none":
-        add_event_query = ("INSERT INTO userinstance (door_id_userinstance, user_id_userinstance, userType_id_userinstance) VALUES (%s, %s, %s)")
+        add_event_query = ("INSERT INTO userinstance (score, door_id_userinstance, user_id_userinstance, userType_id_userinstance) VALUES (50, %s, %s, %s)")
         self.cursor.execute(add_event_query, (door_id, user_id, permission_id))
       else:
         raise ValueError("User already has no permission.")
@@ -206,7 +206,7 @@ class DbManager:
 
   def getMyEvents(self, uuid):
     userId = self.getUserByUUID(uuid)
-    get_myevents_query = ("SELECT scheduledEvent.name FROM user JOIN userToEvent ON user.id=userToEvent.user_id_userToEvent JOIN scheduledEvent ON userToEvent.event_id_userToEvent=scheduledEvent.id WHERE user.id=%s")
+    get_myevents_query = ("SELECT se.name, d.displayName FROM user JOIN userToEvent AS ute ON user.id=ute.user_id_userToEvent JOIN scheduledEvent AS se ON ute.event_id_userToEvent=se.id JOIN door AS d ON d.id = se.door_id_scheduledEvent WHERE user.id=%s")
     self.cursor.execute(get_myevents_query, (userId,))
     results = self.cursor.fetchall()
     return results
@@ -228,8 +228,11 @@ class DbManager:
   def removeUserFromEvent(self, invitedUserUUID, eventName):
     userId = self.getUserByUUID(invitedUserUUID)
     eventId = self.getEventByName(eventName)
+    get_users_in_event_query = ("SELECT ute.user_id_userToEvent FROM userToEvent AS ute WHERE ute.event_id_userToEvent=%s")
+    self.cursor.execute(get_users_in_event_query, (eventId, ))
+    users_in_event = self.cursor.fetchall()
 
-    if ((eventName, ) not in self.getMyEvents(invitedUserUUID)):
+    if ((userId, ) not in users_in_event):
       raise ValueError("User is not invited, so they cannot be uninvited from the event.")
     
     remove_to_event_q = ("DELETE FROM userToEvent WHERE user_id_userToEvent=%s AND event_id_userToEvent=%s")
@@ -262,3 +265,14 @@ class DbManager:
 
       addUserQuery = ("INSERT INTO user (discordUUID, hashedPassword, salt, developer, loggedIn, door_id_user) VALUES (%s, %s, %s, 0, 0, NULL)")
       self.cursor.execute(addUserQuery, (discordUUID, hashedPassword, salt))
+
+  def editUser(self, discordUUID, password):
+    id = self.getUserByUUID(discordUUID)
+    salt = os.urandom(16).hex()
+    m = hashlib.sha256()
+    m.update((salt + password).encode())
+    hashedPassword = m.hexdigest()
+    addUserQuery = ("UPDATE user SET hashedPassword = %s, salt = %s WHERE id = %s")
+    self.cursor.execute(addUserQuery, (hashedPassword, salt, id))
+
+

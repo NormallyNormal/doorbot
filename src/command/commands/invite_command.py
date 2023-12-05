@@ -13,10 +13,10 @@ class InviteCommand(abstract_command.AbstractCommand):
 
     def run(self):
         db_manger_instance = DbManager()
-        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+        if not db_manger_instance.checkLoggedIn(db_manger_instance.getUserByUUID(self.issuer_id)):
             raise SyntaxError("You are not logged in.")
         try:
-            permission_level = db_manger_instance.permissionLevelForEvent(self.issuer_id, self.parsed_args["event name"])
+            permission_level = db_manger_instance.permissionLevelForEvent(self.issuer_id, str(self.parsed_args["event name"]))
             if permission_level == 'admin' or permission_level == 'resident':
                 try:
                     db_manger_instance.addUserToEvent(str(self.parsed_args["user"]), str(self.parsed_args["event name"])) 

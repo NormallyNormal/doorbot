@@ -12,13 +12,14 @@ class PermitCommand(abstract_command.AbstractCommand):
 
     def run(self):
         db_manger_instance = DbManager()
-        if not db_manger_instance.checkLoggedIn(self.issuer_id):
+        if not db_manger_instance.checkLoggedIn(db_manger_instance.getUserByUUID(self.issuer_id)):
             db_manger_instance.closeConnection()
             raise SyntaxError("You are not logged in.")
         try:
-            db_manger_instance.userPermissionUpdate(str(self.parsed_args["user"]), str(self.parsed_args["door"]), str(self.parsed_args["role"]))
+            db_manger_instance.userPermissionUpdate(str(self.parsed_args["user"]), str(self.parsed_args["door"]), str(self.parsed_args["role"]).lower())
             db_manger_instance.getConnection().commit()
-        except:
+        except Exception as e:
+            print(str(e))
             raise SyntaxError("Could not grant permission.")
         finally:
             db_manger_instance.closeConnection()
