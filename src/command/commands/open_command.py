@@ -29,9 +29,10 @@ class OpenCommand(abstract_command.AbstractCommand):
     def run(self):
         db_manger_instance = db_manager.DbManager()
         if not db_manger_instance.checkLoggedIn(self.issuer_id):
+            db_manger_instance.closeConnection()
             raise SyntaxError("You are not logged in.")
         try:
-            db_manger_instance.doorOpened(str(self.parsed_args["door"]), self.issuer_id, "none", "manual")
+            db_manger_instance.doorOpened(str(self.parsed_args["door"]), self.issuer_id, "none", "bot")
             db_manger_instance.getConnection().commit()
         except PermissionError:
             db_manger_instance.closeConnection()

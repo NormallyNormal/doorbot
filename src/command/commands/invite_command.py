@@ -14,6 +14,7 @@ class InviteCommand(abstract_command.AbstractCommand):
     def run(self):
         db_manger_instance = DbManager()
         if not db_manger_instance.checkLoggedIn(db_manger_instance.getUserByUUID(self.issuer_id)):
+            db_manger_instance.closeConnection()
             raise SyntaxError("You are not logged in.")
         try:
             permission_level = db_manger_instance.permissionLevelForEvent(self.issuer_id, str(self.parsed_args["event name"]))
@@ -35,4 +36,3 @@ class InviteCommand(abstract_command.AbstractCommand):
         finally:
             db_manger_instance.closeConnection()
         return response
-

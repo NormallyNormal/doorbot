@@ -15,20 +15,24 @@ class ScheduleCommand(abstract_command.AbstractCommand):
     
 
     def run(self):
-        #database access
-        manager = dbManager.DbManager()
         timeStart = self.parsed_args["time start"].sql()
         timeEnd = self.parsed_args["time end"].sql()
         name = str(self.parsed_args["event name"])
         doorName = str(self.parsed_args["door"])
 
+        manager = dbManager.DbManager()
+
+        if not manager.checkLoggedIn(self.issuer_id):
+            manager.closeConnection()
+            raise SyntaxError("You are not logged in.")
         try:
-            if manager.checkLoggedIn(manager.getUserByUUID(self.issuer_id)):
+            permission_level = manager.permissionLevelForDoor(self.issuer_id, self.parsed_args["event name"])
+            if permission_level == 'admin' or permission_level == 'resident':
                 manager.addEvent(timeStart, timeEnd, name, doorName)
+                manager.getConnection().commit()
             else:
-                raise SyntaxError('You are not logged in')
+                raise SyntaxError('That event does not exist, or you do not have permission')
         except ValueError as e:
             raise SyntaxError(str(e))
         finally:
             manager.closeConnection()
-    
