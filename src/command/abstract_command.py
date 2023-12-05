@@ -2,6 +2,7 @@ import re
 
 import command.argument_types as argument_types
 
+
 class AbstractCommand:
     name = "command"
     desc = "A basic command."
@@ -9,6 +10,9 @@ class AbstractCommand:
 
     def __init__(self, string, discordID, executable=True):
         spit_arguments = split_string_except_quotes(string)
+        is_open_cmd = False
+        if (spit_arguments[0] == "open"):
+            is_open_cmd = True
         del spit_arguments[0]
         self.parsed_args = dict()
         self.issuer_id = discordID
@@ -19,8 +23,11 @@ class AbstractCommand:
                 try:
                     self.parsed_args[type(self).args[i][0]] = type(self).args[i][1](spit_arguments[i])
                 except Exception as e:
-                    print(e)
-                    raise SyntaxError("Argument " + type(self).args[i][0] + " is not valid.")
+                    if is_open_cmd and type(e) == IndexError:
+                        self.parsed_args["door"] = None
+                    else:
+                        print(e)
+                        raise SyntaxError("Argument " + type(self).args[i][0] + " is not valid.")
 
     def run(self):
         #database access
