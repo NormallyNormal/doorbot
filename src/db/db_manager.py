@@ -153,16 +153,20 @@ class DbManager:
     return True
 
   def userPermissionUpdate(self, userUUID, doorName, permissionLevel):
+    user_id = self.getUserByUUID(userUUID)
+    door_id = self.getDoorByName(doorName)
+
     if not permissionLevel in ["none", "guest", "resident", "admin"]:
       raise ValueError("Bad permission level.")
-    door_id = self.getDoorByName(doorName)
-    user_id = self.getUserByUUID(userUUID)
+    
     get_user_instance_query = ("SELECT id FROM userinstance WHERE user_id_userinstance=%s AND door_id_userinstance=%s")
     self.cursor.execute(get_user_instance_query, (user_id, door_id))
     user_instance_id = self.cursor.fetchone()
+
     get_permission_id_query = ("SELECT id FROM usertype WHERE category=%s")
     self.cursor.execute(get_permission_id_query, (permissionLevel,))
     permission_id = self.cursor.fetchone()[0]
+
     if (user_instance_id != None):
       if not permissionLevel == "none":
         set_loggedout_query = ("UPDATE userinstance SET userType_id_userinstance = %s WHERE id=%s")
@@ -185,6 +189,11 @@ class DbManager:
       get_door_in_userinstance_query = ("SELECT userinstance.id FROM userinstance WHERE userinstance.user_id_userinstance=%s AND userinstance.door_id_userinstance=%s")
       self.cursor.execute(get_door_in_userinstance_query, (userId, doorId))
       result = self.cursor.fetchone()[0]
+
+      get_usertype_query = ("SELECT usertype.category FROM userinstance JOIN usertype ON userinstance.userType_id_userinstance=usertype.id WHERE userinstance.id=%s")
+      self.cursor.execute(get_usertype_query, (result, ))
+      result = self.cursor.fetchone()[0]
+      return result
     except:
       raise ValueError("User has no permissions to complete actions on this door.")
 
@@ -274,5 +283,3 @@ class DbManager:
     hashedPassword = m.hexdigest()
     addUserQuery = ("UPDATE user SET hashedPassword = %s, salt = %s WHERE id = %s")
     self.cursor.execute(addUserQuery, (hashedPassword, salt, id))
-
-

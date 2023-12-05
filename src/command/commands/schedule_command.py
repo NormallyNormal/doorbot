@@ -26,7 +26,7 @@ class ScheduleCommand(abstract_command.AbstractCommand):
             manager.closeConnection()
             raise SyntaxError("You are not logged in.")
         try:
-            permission_level = manager.permissionLevelForDoor(self.issuer_id, self.parsed_args["event name"])
+            permission_level = manager.permissionLevelForDoor(self.issuer_id, self.parsed_args["door"])
             if permission_level == 'admin' or permission_level == 'resident':
                 manager.addEvent(timeStart, timeEnd, name, doorName)
                 manager.getConnection().commit()

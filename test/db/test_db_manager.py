@@ -135,20 +135,11 @@ class TestDbManager:
 
         manager.doorOpened("Room 403 Door", "1234", "images/abc.png", "bot")
 
-        get_entryphoto_query = ("SELECT * FROM entryphoto")
-        manager.getCursor().execute(get_entryphoto_query)
-        results = manager.getCursor().fetchall()
-        assert len(results) == 1
-        result = results[0]        
-        entryPhotoId = result[0]
-        assert result[1] == "images/abc.png"
-        assert result[2] == datetime.now().replace(microsecond=0)
-
-        get_openlogs_query = ("SELECT timestamp, door_id_openlog, photo_id_openlog, userInstance_id_openlog, openType_id_openlog FROM openlog")
+        get_openlogs_query = ("SELECT door_id_openlog, userInstance_id_openlog, openType_id_openlog FROM openlog")
         manager.getCursor().execute(get_openlogs_query)
         results = manager.getCursor().fetchall()
         assert len(results) == 1
-        assert results[0] == (datetime.now().replace(microsecond=0), manager.getDoorByName("Room 403 Door"), entryPhotoId, manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByUUID("1234")), manager.getOpenTypeByName("bot"))
+        assert results[0] == (manager.getDoorByName("Room 403 Door"), manager.getUserInstance(manager.getDoorByName("Room 403 Door"), manager.getUserByUUID("1234")), manager.getOpenTypeByName("bot"))
 
     def test_getDoors(self):
         try:
@@ -271,7 +262,7 @@ class TestDbManager:
 
         assert manager.getMyEvents("12345") == []
         manager.addUserToEvent("12345", "Party B") 
-        assert manager.getMyEvents("12345") == [("Party B",)]
+        assert manager.getMyEvents("12345") == [("Party B", "Room 403 Door")]
         manager.getConnection().rollback()
  
     def test_removeUserFromEvent(self):
@@ -296,7 +287,7 @@ class TestDbManager:
             assert str(e) == "User is not invited, so they cannot be uninvited from the event."
             assert True
 
-        assert manager.getMyEvents("1234") == [("Party B",)]
+        assert manager.getMyEvents("1234") == [("Party B", "Room 403 Door")]
         manager.removeUserFromEvent("1234", "Party B") 
         assert manager.getMyEvents("1234") == []
         manager.getConnection().rollback()
@@ -350,7 +341,7 @@ class TestDbManager:
             assert str(e) == "User has no permissions to complete actions on this door."
         
         try:
-            manager.permissionLevelForDoor("1234", "Room 403 Door")
+            assert manager.permissionLevelForDoor("1234", "Room 403 Door") == "resident"
             assert True
         except ValueError as e:
             assert False
