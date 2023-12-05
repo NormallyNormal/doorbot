@@ -54,8 +54,6 @@ async def open_door_async(door_name):
 def start_door_server():
     SocketServerThread().start()
 
-start_door_server()
-
 #HOW TO USE:
 #run once:
 #start_door_server()
