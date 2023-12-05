@@ -2,6 +2,7 @@ import re
 
 import command.argument_types as argument_types
 import command.abstract_command as abstract_command
+from db.db_manager import DbManager
 
 class UninviteCommand(abstract_command.AbstractCommand):
     name = "uninvite"
@@ -10,7 +11,7 @@ class UninviteCommand(abstract_command.AbstractCommand):
             ("event name", argument_types.StringArgumentType, "Name of the event to remove the user from.")]
 
     def run(self):
-        db_manger_instance = db_manager.DbManager()
+        db_manger_instance = DbManager()
         if not db_manger_instance.checkLoggedIn(self.issuer_id):
             raise SyntaxError("You are not logged in.")
         try:
