@@ -18,7 +18,10 @@ class EventsCommand(abstract_command.AbstractCommand):
         events_for_door = db_manger_instance.getEvents(str(self.parsed_args["door"]))
         response = "Events for "
         response += str(self.parsed_args["door"]) + ":\n\n"
-        for event_for_door in events_for_door:
-            response += f"- {event_for_door[2]} from {str(event_for_door[0])} to {str(event_for_door[1])}"
+        if (events_for_door):
+            for event_for_door in events_for_door:
+                response += f"- {event_for_door[2]} from {str(event_for_door[0])} to {str(event_for_door[1])}\n"
+        else:
+            response += "This door has no events"
         db_manger_instance.closeConnection()
         return response

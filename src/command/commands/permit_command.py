@@ -23,7 +23,7 @@ class PermitCommand(abstract_command.AbstractCommand):
             raise SyntaxError("Could not grant permission.")
         finally:
             db_manger_instance.closeConnection()
-        response = "Permission  "
+        response = "Permission "
         response += str(self.parsed_args["role"]) + " given to @<"
         response += str(self.parsed_args["user"]) + "> for "
         response += str(self.parsed_args["door"])

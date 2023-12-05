@@ -19,6 +19,8 @@ class ListCommand(abstract_command.AbstractCommand):
                 if (doors):
                     for door in doors:
                         response += f"- {door[0]} -- {door[1]}\n"
+                else:
+                    response += "You do not have access to any doors"
                 return response
             else:
                 raise SyntaxError('You are not logged in')

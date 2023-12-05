@@ -20,5 +20,7 @@ class MyeventsCommand(abstract_command.AbstractCommand):
         if (events):
             for event in events:
                 response += f"- {event[0]} at door: {event[1]}\n"
+        else:
+            response += "You are not invited to any events"
         db_manger_instance.closeConnection()
         return response
