@@ -28,6 +28,6 @@ class UninviteCommand(abstract_command.AbstractCommand):
             else:
                 raise SyntaxError("That event does not exist, or you do not have permission")
         except:
-            db_manager.closeConnection()
+            db_manger_instance.closeConnection()
             raise SyntaxError("That event does not exist, or you do not have permission")
         return response
