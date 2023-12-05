@@ -22,7 +22,7 @@ class ScheduleCommand(abstract_command.AbstractCommand):
 
         manager = dbManager.DbManager()
 
-        if not manager.checkLoggedIn(self.issuer_id):
+        if not manager.checkLoggedIn(manager.getUserByUUID(self.issuer_id)):
             manager.closeConnection()
             raise SyntaxError("You are not logged in.")
         try:

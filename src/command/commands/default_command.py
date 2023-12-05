@@ -11,7 +11,7 @@ class DefaultCommand(abstract_command.AbstractCommand):
 
     def run(self):
         manager = dbManager.DbManager()
-        if not manager.checkLoggedIn(self.issuer_id):
+        if not manager.checkLoggedIn(manager.getUserByUUID(self.issuer_id)):
             manager.closeConnection()
             raise SyntaxError("You are not logged in.")
         try:
