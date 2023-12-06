@@ -26,11 +26,11 @@ class OpenCommand(abstract_command.AbstractCommand):
             now = datetime.now()
             random_str = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
             filename = f"tempfile-{now.strftime('%d-%m-%Y-%H:%M:%S')}-{random_str}.png"
-            db_manger_instance.doorOpened(str(self.parsed_args["door"]), self.issuer_id, filename, "manual")
+            db_manger_instance.doorOpened(str(self.parsed_args["door"]), self.issuer_id, filename, "bot")
             db_manger_instance.getConnection().commit()
             response = "Opened a door: "
             response += str(self.parsed_args["door"])
-            door_server.open_door(str(self.parsed_args["door"]))
+            door_server.open_door_async(str(self.parsed_args["door"]))
         except (PermissionError, ValueError) as e:
             db_manger_instance.closeConnection()
             raise SyntaxError(str(e))

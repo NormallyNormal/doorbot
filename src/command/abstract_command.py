@@ -47,6 +47,8 @@ class AbstractCommand:
 def split_string_except_quotes(input_string):
     # Regex pattern to match quoted sections or non-whitespace characters
     pattern = r'(?:"[^"]*"|\S)+'
+    input_string = input_string.replace("“", "\"")
+    input_string = input_string.replace("”", "\"")
 
     # Find all occurrences of the pattern in the input string
     tokens = re.findall(pattern, input_string)

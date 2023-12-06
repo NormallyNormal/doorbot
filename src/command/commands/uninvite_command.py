@@ -22,12 +22,12 @@ class UninviteCommand(abstract_command.AbstractCommand):
                 try:
                     db_manger_instance.removeUserFromEvent(str(self.parsed_args["user"]), str(self.parsed_args["event name"]))
                     db_manger_instance.getConnection().commit()
-                    response = "Removed @<"
+                    response = "Removed <@"
                     response += str(self.parsed_args["user"]) + "> from event "
                     response += str(self.parsed_args["event name"]) + "."
                 except Exception as e:
                     print(str(e))
-                    response = "Failed to remove @<"
+                    response = "Failed to remove <@"
                     response += str(self.parsed_args["user"]) + "> from event "
                     response += str(self.parsed_args["event name"]) + "."
             else:

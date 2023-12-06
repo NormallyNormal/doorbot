@@ -22,11 +22,11 @@ class InviteCommand(abstract_command.AbstractCommand):
                 try:
                     db_manger_instance.addUserToEvent(str(self.parsed_args["user"]), str(self.parsed_args["event name"])) 
                     db_manger_instance.getConnection().commit()
-                    response = "Added @<"
+                    response = "Added <@"
                     response += str(self.parsed_args["user"]) + "> to event "
                     response += str(self.parsed_args["event name"]) + "."
                 except:
-                    response = "Failed to add @<"
+                    response = "Failed to add <@"
                     response += str(self.parsed_args["user"]) + "> to event "
                     response += str(self.parsed_args["event name"]) + "."
             else:
