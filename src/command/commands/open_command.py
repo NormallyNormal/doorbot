@@ -30,7 +30,7 @@ class OpenCommand(abstract_command.AbstractCommand):
             db_manger_instance.getConnection().commit()
             response = "Opened a door: "
             response += str(self.parsed_args["door"])
-            door_server.open_door_async(str(self.parsed_args["door"]))
+            door_server.open_door(str(self.parsed_args["door"]))
         except (PermissionError, ValueError) as e:
             db_manger_instance.closeConnection()
             raise SyntaxError(str(e))

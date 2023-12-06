@@ -14,6 +14,14 @@ class SocketServerThread(Thread):
      def run(self):
          asyncio.run(connect_serve())
 
+class OpenDoorThread(Thread):
+     def __init__(self, door_name):
+         super(OpenDoorThread, self).__init__()
+         self.door_name = door_name
+
+     def run(self):
+         asyncio.run(open_door_async(self.door_name))
+
 async def connect_serve():
     async with serve(handle_connect, "", 8765):
         try:
@@ -43,7 +51,7 @@ async def handle_connect(websocket):
             return
 
 def open_door(door_name):
-    asyncio.run(open_door_async(door_name))
+     OpenDoorThread(door_name).start()
 
 async def open_door_async(door_name):
     try:
