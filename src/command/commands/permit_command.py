@@ -19,8 +19,8 @@ class PermitCommand(abstract_command.AbstractCommand):
             db_manger_instance.userPermissionUpdate(str(self.parsed_args["user"]), str(self.parsed_args["door"]), str(self.parsed_args["role"]).lower())
             db_manger_instance.getConnection().commit()
         except Exception as e:
-            print(str(e))
-            raise SyntaxError("Could not grant permission.")
+            raise e
+            #raise SyntaxError("Could not grant permission.")
         finally:
             db_manger_instance.closeConnection()
         response = "Permission "

@@ -163,9 +163,11 @@ class DbManager:
     self.cursor.execute(get_user_instance_query, (user_id, door_id))
     user_instance_id = self.cursor.fetchone()
 
-    get_permission_id_query = ("SELECT id FROM usertype WHERE category=%s")
-    self.cursor.execute(get_permission_id_query, (permissionLevel,))
-    permission_id = self.cursor.fetchone()[0]
+    permission_id = ""
+    if not permissionLevel == "none":
+      get_permission_id_query = ("SELECT id FROM usertype WHERE category=%s")
+      self.cursor.execute(get_permission_id_query, (permissionLevel,))
+      permission_id = self.cursor.fetchone()[0]
 
     if (user_instance_id != None):
       if not permissionLevel == "none":
@@ -173,7 +175,7 @@ class DbManager:
         self.cursor.execute(set_loggedout_query, (permission_id, user_instance_id[0]))
       else:
         set_loggedout_query = ("DELETE FROM userinstance WHERE id=%s")
-        self.cursor.execute(set_loggedout_query, (user_instance_id[0]))
+        self.cursor.execute(set_loggedout_query, (user_instance_id[0], ))
     else:
       if not permissionLevel == "none":
         add_event_query = ("INSERT INTO userinstance (score, door_id_userinstance, user_id_userinstance, userType_id_userinstance) VALUES (50, %s, %s, %s)")

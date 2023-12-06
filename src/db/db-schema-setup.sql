@@ -176,7 +176,7 @@ BEGIN
 	DECLARE ui_id INT;
 	DECLARE t time; -- timestamp
 	DECLARE last_inserted INT;
-	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id;
+	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id LIMIT 1;
 	IF ui_id IS NOT NULL THEN 
 		SET t = CURRENT_TIME();
 		INSERT INTO entryphoto(fileName, `timestamp`) VALUES (photo_filename, t);
@@ -202,8 +202,8 @@ BEGIN
   DECLARE end_date datetime;
 	DECLARE event_id INT;
 	-- Get the user instance ID for this door
-	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id;
-	SELECT ute.event_id_userToEvent INTO event_id FROM userToEvent AS ute JOIN scheduledEvent AS se ON se.id = ute.event_id_userToEvent WHERE se.door_id_scheduledEvent = door_id AND ute.user_id_userToEvent = user_id;
+	SELECT ui.id INTO ui_id FROM userinstance AS ui JOIN user AS u ON u.id = ui.user_id_userinstance JOIN door AS d ON d.id = ui.door_id_userinstance WHERE d.id = door_id AND u.id = user_id LIMIT 1;
+	SELECT ute.event_id_userToEvent INTO event_id FROM userToEvent AS ute JOIN scheduledEvent AS se ON se.id = ute.event_id_userToEvent WHERE se.door_id_scheduledEvent = door_id AND ute.user_id_userToEvent = user_id AND se.timeStart < NOW() AND se.timeEnd > NOW() LIMIT 1;
 	-- check for membership
 	IF ui_id IS NOT NULL THEN
 		-- Get times the user can enter the door
