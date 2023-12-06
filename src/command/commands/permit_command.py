@@ -20,7 +20,7 @@ class PermitCommand(abstract_command.AbstractCommand):
             db_manger_instance.getConnection().commit()
         except Exception as e:
             raise e
-            #raise SyntaxError("Could not grant permission.")
+            raise SyntaxError("Could not grant permission.")
         finally:
             db_manger_instance.closeConnection()
         response = "Permission "

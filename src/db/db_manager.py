@@ -164,18 +164,13 @@ class DbManager:
     user_instance_id = self.cursor.fetchone()
 
     permission_id = ""
-    if not permissionLevel == "none":
-      get_permission_id_query = ("SELECT id FROM usertype WHERE category=%s")
-      self.cursor.execute(get_permission_id_query, (permissionLevel,))
-      permission_id = self.cursor.fetchone()[0]
+    get_permission_id_query = ("SELECT id FROM usertype WHERE category=%s")
+    self.cursor.execute(get_permission_id_query, (permissionLevel,))
+    permission_id = self.cursor.fetchone()[0]
 
     if (user_instance_id != None):
-      if not permissionLevel == "none":
-        set_loggedout_query = ("UPDATE userinstance SET userType_id_userinstance = %s WHERE id=%s")
-        self.cursor.execute(set_loggedout_query, (permission_id, user_instance_id[0]))
-      else:
-        set_loggedout_query = ("DELETE FROM userinstance WHERE id=%s")
-        self.cursor.execute(set_loggedout_query, (user_instance_id[0], ))
+      set_loggedout_query = ("UPDATE userinstance SET userType_id_userinstance = %s WHERE id=%s")
+      self.cursor.execute(set_loggedout_query, (permission_id, user_instance_id[0]))
     else:
       if not permissionLevel == "none":
         add_event_query = ("INSERT INTO userinstance (score, door_id_userinstance, user_id_userinstance, userType_id_userinstance) VALUES (50, %s, %s, %s)")
