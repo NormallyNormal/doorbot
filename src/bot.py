@@ -26,13 +26,38 @@ class MyClient(discord.Client):
             idx += 1
         message_content = ' '.join(message_content_array)
         print(f'Message from {message.author}: {message.content}')
-        try:
-            response = command_registry.execute(message_content, message.author.id)
-        except SyntaxError as syntaxError:
-            response = str(syntaxError)
-        finally:
-            await message.channel.send(response)
-        
+        if(message_content != 'button'):
+            try:
+                response = command_registry.execute(message_content, message.author.id)
+            except SyntaxError as syntaxError:
+                response = str(syntaxError)
+            finally:
+                response_chunked = chunk_string(response)
+                for response_part in response_chunked:
+                    await message.channel.send(response_part)
+        else:
+            await message.channel.send("This button will open your default door!", view=MyView())
+            
+class MyView(discord.ui.View):
+    @discord.ui.button(label="Open Door", style=discord.ButtonStyle.primary)
+    async def button_callback(self, interaction, button):
+        response = command_registry.execute('open', interaction.user.id)
+        await interaction.response.defer()
+            
+def chunk_string(text, chunk_size=2000):
+    chunks = []
+    while len(text) > chunk_size:
+        last_newline_index = text.rfind('\n', 0, chunk_size)
+        if last_newline_index == -1:
+            # No newline found within the chunk_size
+            chunks.append(text[:chunk_size])
+            text = text[chunk_size:]
+        else:
+            chunks.append(text[:last_newline_index])
+            text = text[last_newline_index+1:]
+    chunks.append(text)
+    return chunks
+
 load_dotenv('bot.env')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 intents = discord.Intents.default()
